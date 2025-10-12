@@ -1,16 +1,46 @@
+import { useEffect, useState } from "react";
 import { MaterialCard, Material } from "./MaterialCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface MaterialsGridProps {
-  materials: Material[];
   searchQuery: string;
   selectedDepartment: string;
 }
 
-export const MaterialsGrid = ({ materials, searchQuery, selectedDepartment }: MaterialsGridProps) => {
+export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGridProps) => {
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  const fetchMaterials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setMaterials(data || []);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load materials',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch = 
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (material.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       material.course.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesDepartment = 
@@ -19,6 +49,18 @@ export const MaterialsGrid = ({ materials, searchQuery, selectedDepartment }: Ma
 
     return matchesSearch && matchesDepartment;
   });
+
+  if (loading) {
+    return (
+      <section className="py-12 bg-background">
+        <div className="container px-4">
+          <div className="text-center py-16">
+            <p className="text-xl text-muted-foreground">Loading materials...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-background">

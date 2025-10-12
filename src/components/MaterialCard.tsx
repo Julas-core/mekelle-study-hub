@@ -2,17 +2,20 @@ import { FileText, Download, Calendar, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Material {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   department: string;
   course: string;
-  type: "PDF" | "PPT" | "DOC" | "VIDEO";
-  uploadDate: string;
-  uploadedBy: string;
-  size: string;
+  file_type: string;
+  file_path: string;
+  file_size: string;
+  uploaded_by: string;
+  created_at: string;
 }
 
 interface MaterialCardProps {
@@ -24,22 +27,65 @@ const typeColors = {
   PPT: "bg-accent/10 text-accent-foreground border-accent/20",
   DOC: "bg-primary/10 text-primary border-primary/20",
   VIDEO: "bg-secondary/10 text-secondary-foreground border-secondary/20",
+  OTHER: "bg-muted/10 text-muted-foreground border-muted/20",
 };
 
 export const MaterialCard = ({ material }: MaterialCardProps) => {
+  const { toast } = useToast();
+
+  const handleDownload = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('course-materials')
+        .download(material.file_path);
+
+      if (error) throw error;
+
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = material.file_path.split('/').pop() || 'download';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: 'Download started',
+        description: 'Your file is downloading...',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Download failed',
+        description: error.message || 'Failed to download file',
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-border">
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <Badge className={typeColors[material.type]}>
-            {material.type}
+          <Badge className={typeColors[material.file_type as keyof typeof typeColors] || typeColors.OTHER}>
+            {material.file_type}
           </Badge>
-          <span className="text-xs text-muted-foreground">{material.size}</span>
+          <span className="text-xs text-muted-foreground">{material.file_size}</span>
         </div>
         <CardTitle className="text-xl group-hover:text-primary transition-colors">
           {material.title}
         </CardTitle>
-        <CardDescription className="line-clamp-2">{material.description}</CardDescription>
+        <CardDescription className="line-clamp-2">
+          {material.description || 'No description available'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2 text-sm">
@@ -49,16 +95,16 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <User className="h-4 w-4" />
-            <span>{material.uploadedBy}</span>
+            <span>{material.uploaded_by}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            <span>{material.uploadDate}</span>
+            <span>{formatDate(material.created_at)}</span>
           </div>
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full gap-2 bg-primary hover:bg-primary/90">
+        <Button onClick={handleDownload} className="w-full gap-2 bg-primary hover:bg-primary/90">
           <Download className="h-4 w-4" />
           Download Material
         </Button>

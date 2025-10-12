@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Hero } from "@/components/Hero";
 import { DepartmentFilter } from "@/components/DepartmentFilter";
 import { MaterialsGrid } from "@/components/MaterialsGrid";
-import { sampleMaterials } from "@/data/sampleMaterials";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,7 +15,6 @@ const Index = () => {
         onSelect={setSelectedDepartment} 
       />
       <MaterialsGrid 
-        materials={sampleMaterials}
         searchQuery={searchQuery}
         selectedDepartment={selectedDepartment}
       />
