@@ -8,6 +8,11 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const checkIsAdminEmail = (email: string | undefined): boolean => {
+    const adminEmails = ['codingjulas@gmail.com', 'julasmame@gmail.com'];
+    return email ? adminEmails.includes(email) : false;
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -15,11 +20,9 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check admin status after state updates
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id);
-          }, 0);
+        // Check admin status using email
+        if (session?.user?.email) {
+          setIsAdmin(checkIsAdminEmail(session.user.email));
         } else {
           setIsAdmin(false);
         }
@@ -30,8 +33,8 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminStatus(session.user.id);
+      if (session?.user?.email) {
+        setIsAdmin(checkIsAdminEmail(session.user.email));
       }
       setLoading(false);
     });
