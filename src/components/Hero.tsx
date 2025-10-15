@@ -57,7 +57,7 @@ export const Hero = ({ onSearch }: HeroProps) => {
                   className="text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                  Sign Out ({user.email})
                 </Button>
               </>
             ) : (
