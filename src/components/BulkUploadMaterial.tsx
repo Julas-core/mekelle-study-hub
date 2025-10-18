@@ -8,6 +8,7 @@ import { X, Loader2, Sparkles } from 'lucide-react';
 
 interface MaterialMetadata {
   file: File;
+  courseCode: string;
   title: string;
   description: string;
   generating: boolean;
@@ -15,11 +16,10 @@ interface MaterialMetadata {
 
 interface BulkUploadMaterialProps {
   department: string;
-  course: string;
   onMaterialsChange: (materials: MaterialMetadata[]) => void;
 }
 
-export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: BulkUploadMaterialProps) => {
+export const BulkUploadMaterial = ({ department, onMaterialsChange }: BulkUploadMaterialProps) => {
   const [materials, setMaterials] = useState<MaterialMetadata[]>([]);
 
   const handleFilesSelected = async (files: FileList | null) => {
@@ -27,6 +27,7 @@ export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: Bu
 
     const newMaterials: MaterialMetadata[] = Array.from(files).map(file => ({
       file,
+      courseCode: '',
       title: '',
       description: '',
       generating: true,
@@ -48,13 +49,12 @@ export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: Bu
           body: JSON.stringify({
             fileName: material.file.name,
             department,
-            course,
           }),
         });
 
         if (response.ok) {
-          const { title, description } = await response.json();
-          const updatedMaterial = { ...material, title, description, generating: false };
+          const { courseCode, title, description } = await response.json();
+          const updatedMaterial = { ...material, courseCode, title, description, generating: false };
           
           setMaterials(prev => {
             const updated = [...prev];
@@ -71,7 +71,8 @@ export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: Bu
       } catch (error) {
         console.error('Error generating metadata:', error);
         const updatedMaterial = { 
-          ...material, 
+          ...material,
+          courseCode: '',
           title: material.file.name, 
           description: '', 
           generating: false 
@@ -90,7 +91,7 @@ export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: Bu
     }
   };
 
-  const updateMaterial = (index: number, field: 'title' | 'description', value: string) => {
+  const updateMaterial = (index: number, field: 'courseCode' | 'title' | 'description', value: string) => {
     setMaterials(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -149,6 +150,18 @@ export const BulkUploadMaterial = ({ department, course, onMaterialsChange }: Bu
                       {material.generating && (
                         <Loader2 className="h-4 w-4 animate-spin text-primary" />
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`courseCode-${index}`}>Course Code *</Label>
+                      <Input
+                        id={`courseCode-${index}`}
+                        value={material.courseCode}
+                        onChange={(e) => updateMaterial(index, 'courseCode', e.target.value)}
+                        placeholder="e.g., CSEN301"
+                        disabled={material.generating}
+                        required
+                      />
                     </div>
 
                     <div className="space-y-2">

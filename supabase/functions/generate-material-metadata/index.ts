@@ -11,19 +11,21 @@ serve(async (req) => {
   }
 
   try {
-    const { fileName, department, course } = await req.json();
+    const { fileName, department } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const prompt = `Given a file named "${fileName}" for a ${department} course (${course}), generate:
-1. A clear, concise title (max 100 characters)
-2. A brief description (max 200 characters) of what this material likely contains
+    const prompt = `Given a file named "${fileName}" for a ${department} department, analyze the filename and generate:
+1. The course code (e.g., CSEN301, MATH201) - extract from filename or suggest based on content
+2. A clear, concise title (max 100 characters)
+3. A brief description (max 200 characters) of what this material likely contains
 
 Respond in JSON format:
 {
+  "courseCode": "extracted or suggested course code",
   "title": "your generated title",
   "description": "your generated description"
 }`;
@@ -37,7 +39,7 @@ Respond in JSON format:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that generates educational material titles and descriptions. Always respond with valid JSON only.' },
+          { role: 'system', content: 'You are a helpful assistant that extracts course information and generates educational material metadata. Always respond with valid JSON only.' },
           { role: 'user', content: prompt }
         ],
       }),

@@ -13,6 +13,7 @@ import { BulkUploadMaterial } from '@/components/BulkUploadMaterial';
 
 interface MaterialMetadata {
   file: File;
+  courseCode: string;
   title: string;
   description: string;
   generating: boolean;
@@ -20,7 +21,6 @@ interface MaterialMetadata {
 
 const Upload = () => {
   const [department, setDepartment] = useState('');
-  const [course, setCourse] = useState('');
   const [materials, setMaterials] = useState<MaterialMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user, isAdmin, loading } = useAuth();
@@ -67,12 +67,12 @@ const Upload = () => {
       return;
     }
 
-    // Check if all materials have titles
-    if (materials.some(m => !m.title.trim())) {
+    // Check if all materials have course codes and titles
+    if (materials.some(m => !m.courseCode.trim() || !m.title.trim())) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please provide titles for all materials.',
+        description: 'Please provide course codes and titles for all materials.',
       });
       return;
     }
@@ -92,7 +92,7 @@ const Upload = () => {
       // Upload all materials
       for (const material of materials) {
         // Upload file to storage
-        const filePath = `${department}/${course}/${Date.now()}_${material.file.name}`;
+        const filePath = `${department}/${material.courseCode}/${Date.now()}_${material.file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('course-materials')
           .upload(filePath, material.file);
@@ -106,7 +106,7 @@ const Upload = () => {
             title: material.title,
             description: material.description,
             department,
-            course,
+            course: material.courseCode,
             file_type: getFileType(material.file.name),
             file_path: filePath,
             file_size: formatFileSize(material.file.size),
@@ -124,7 +124,6 @@ const Upload = () => {
 
       // Reset form
       setDepartment('');
-      setCourse('');
       setMaterials([]);
       navigate('/');
     } catch (error: any) {
@@ -157,40 +156,26 @@ const Upload = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department *</Label>
-                  <Select value={department} onValueChange={setDepartment} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Computer Science">Computer Science</SelectItem>
-                      <SelectItem value="Engineering">Engineering</SelectItem>
-                      <SelectItem value="Business">Business</SelectItem>
-                      <SelectItem value="Medicine">Medicine</SelectItem>
-                      <SelectItem value="Law">Law</SelectItem>
-                      <SelectItem value="Education">Education</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="course">Course *</Label>
-                  <Input
-                    id="course"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}
-                    placeholder="e.g., CS101"
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="department">Department *</Label>
+                <Select value={department} onValueChange={setDepartment} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Computer Science">Computer Science</SelectItem>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Business">Business</SelectItem>
+                    <SelectItem value="Medicine">Medicine</SelectItem>
+                    <SelectItem value="Law">Law</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {department && course && (
+              {department && (
                 <BulkUploadMaterial
                   department={department}
-                  course={course}
                   onMaterialsChange={setMaterials}
                 />
               )}
