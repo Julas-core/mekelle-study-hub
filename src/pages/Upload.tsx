@@ -3,20 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload as UploadIcon } from 'lucide-react';
+import { BulkUploadMaterial } from '@/components/BulkUploadMaterial';
+
+interface MaterialMetadata {
+  file: File;
+  title: string;
+  description: string;
+  generating: boolean;
+}
 
 const Upload = () => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [department, setDepartment] = useState('');
   const [course, setCourse] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [materials, setMaterials] = useState<MaterialMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user, isAdmin, loading } = useAuth();
   const { toast } = useToast();
@@ -50,60 +55,83 @@ const Upload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !user) return;
+    if (materials.length === 0 || !user) return;
+
+    // Check if any material is still generating
+    if (materials.some(m => m.generating)) {
+      toast({
+        variant: 'destructive',
+        title: 'Please Wait',
+        description: 'AI is still generating metadata for some files.',
+      });
+      return;
+    }
+
+    // Check if all materials have titles
+    if (materials.some(m => !m.title.trim())) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please provide titles for all materials.',
+      });
+      return;
+    }
 
     setUploading(true);
 
     try {
-      // Upload file to storage
-      const filePath = `${department}/${course}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('course-materials')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get user profile
+      // Get user profile once
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
         .single();
 
-      // Create material record
-      const { error: insertError } = await supabase
-        .from('materials')
-        .insert({
-          title,
-          description,
-          department,
-          course,
-          file_type: getFileType(file.name),
-          file_path: filePath,
-          file_size: formatFileSize(file.size),
-          uploaded_by: profile?.full_name || user.email || 'Unknown',
-          uploaded_by_user_id: user.id,
-        });
+      const uploadedBy = profile?.full_name || user.email || 'Unknown';
+      
+      // Upload all materials
+      for (const material of materials) {
+        // Upload file to storage
+        const filePath = `${department}/${course}/${Date.now()}_${material.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('course-materials')
+          .upload(filePath, material.file);
 
-      if (insertError) throw insertError;
+        if (uploadError) throw uploadError;
+
+        // Create material record
+        const { error: insertError } = await supabase
+          .from('materials')
+          .insert({
+            title: material.title,
+            description: material.description,
+            department,
+            course,
+            file_type: getFileType(material.file.name),
+            file_path: filePath,
+            file_size: formatFileSize(material.file.size),
+            uploaded_by: uploadedBy,
+            uploaded_by_user_id: user.id,
+          });
+
+        if (insertError) throw insertError;
+      }
 
       toast({
         title: 'Success!',
-        description: 'Material uploaded successfully.',
+        description: `${materials.length} material(s) uploaded successfully.`,
       });
 
       // Reset form
-      setTitle('');
-      setDescription('');
       setDepartment('');
       setCourse('');
-      setFile(null);
+      setMaterials([]);
       navigate('/');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: error.message || 'Failed to upload material',
+        description: error.message || 'Failed to upload materials',
       });
     } finally {
       setUploading(false);
@@ -128,45 +156,7 @@ const Upload = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="file">File *</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  required
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi,.mov"
-                />
-                {file && (
-                  <p className="text-sm text-muted-foreground">
-                    {file.name} ({formatFileSize(file.size)})
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Data Structures Lecture Notes"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief description of the material"
-                  rows={3}
-                />
-              </div>
-
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="department">Department *</Label>
@@ -197,9 +187,21 @@ const Upload = () => {
                 </div>
               </div>
 
+              {department && course && (
+                <BulkUploadMaterial
+                  department={department}
+                  course={course}
+                  onMaterialsChange={setMaterials}
+                />
+              )}
+
               <div className="flex gap-2">
-                <Button type="submit" disabled={uploading} className="flex-1">
-                  {uploading ? 'Uploading...' : 'Upload Material'}
+                <Button 
+                  type="submit" 
+                  disabled={uploading || materials.length === 0 || materials.some(m => m.generating)} 
+                  className="flex-1"
+                >
+                  {uploading ? 'Uploading...' : `Upload ${materials.length} Material(s)`}
                 </Button>
                 <Button
                   type="button"

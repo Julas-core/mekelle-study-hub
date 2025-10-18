@@ -1,1 +1,4 @@
 project_id = "firxgpvkiyvtuhxymali"
+
+[functions.generate-material-metadata]
+verify_jwt = false
