@@ -1,73 +1,88 @@
-# Welcome to your Lovable project
+# Mekelle University Course Material Distribution Platform
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/a767c3b5-c1fc-48fd-b6cc-3bf43141a62a
+The Mekelle University Course Material Distribution Platform is a web-based application designed to streamline the distribution of academic materials between administrators and students. This platform enables efficient sharing of course content in various formats (PDF, DOCX, PPTX) with a focus on accessibility and user experience for the Mekelle University community.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **User Authentication**: Separate login systems for students and administrators
+- **Material Management**: Admins can upload course materials with metadata
+- **Course Organization**: Structured by course codes and academic years
+- **Download Functionality**: Students can access and download relevant materials
+- **Responsive Design**: Works across desktop and mobile devices
+- **File Format Support**: Handles PDF, DOCX, PPTX files
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/a767c3b5-c1fc-48fd-b6cc-3bf43141a62a) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
+## Technologies Used
 
 This project is built with:
 
 - Vite
 - TypeScript
 - React
-- shadcn-ui
 - Tailwind CSS
+- shadcn-ui
 
-## How can I deploy this project?
+## User Roles
 
-Simply open [Lovable](https://lovable.dev/projects/a767c3b5-c1fc-48fd-b6cc-3bf43141a62a) and click on Share -> Publish.
+- **Students**: Browse, search, and download course materials relevant to their programs
+- **Administrators**: Upload, organize, and manage course materials for different courses
 
-## Can I connect a custom domain to my Lovable project?
+## Getting Started
 
-Yes, you can!
+To run this project locally:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+# Step 1: Clone the repository
+git clone <repository-url>
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+# Step 2: Navigate to the project directory
+cd mekelle-study-hub
+
+# Step 3: Install the necessary dependencies
+npm install
+
+# Step 4: Start the development server
+npm run dev
+```
+
+## Project Structure
+
+- `src/` - Contains the main source code
+- `public/` - Static assets and files
+- `components/` - Reusable UI components
+- `pages/` - Application pages for different user roles
+- `utils/` - Utility functions
+- `types/` - TypeScript type definitions
+
+## Database Schema
+
+The platform uses a JSON-based storage system with the following conceptual schema:
+
+### Users Collection
+- `id`: Unique User ID
+- `username`: Used for Login
+- `passwordHash`: Hashed Password
+- `role`: 'Student' or 'Admin'
+- `fullName`: User's full name
+- `department`: Student/Admin's department
+- `yearOfStudy`: Student's current academic year
+
+### Materials Collection
+- `materialId`: Unique Material ID
+- `courseCode`: e.g., 'CSEN301'
+- `title`: e.g., 'Chapter 1 Notes'
+- `fileType`: PDF, DOCX, PPTX
+- `filePath`: URL or local path to the file
+- `uploadDate`: Tracking date of upload
+
+## How to Contribute
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request with a detailed description
+
+## License
+
+This project is created for educational purposes at Mekelle University.
