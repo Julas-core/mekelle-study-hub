@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackDownload } from "@/hooks/useAnalytics";
 
 export interface Material {
   id: string;
@@ -54,6 +55,8 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
         title: 'Download started',
         description: 'Your file is downloading...',
       });
+      
+      trackDownload(material.title, material.file_type); // Track download event
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -71,41 +74,70 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleDownload();
+    }
+  };
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-border">
+    <Card 
+      className="group hover:shadow-lg transition-all duration-300 border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="article"
+      aria-labelledby={`material-title-${material.id}`}
+      aria-describedby={`material-description-${material.id}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <Badge className={typeColors[material.file_type as keyof typeof typeColors] || typeColors.OTHER}>
+          <Badge 
+            className={typeColors[material.file_type as keyof typeof typeColors] || typeColors.OTHER}
+            aria-label={`File type: ${material.file_type}`}
+          >
             {material.file_type}
           </Badge>
-          <span className="text-xs text-muted-foreground">{material.file_size}</span>
+          <span className="text-xs text-muted-foreground" id={`material-size-${material.id}`}>
+            {material.file_size}
+          </span>
         </div>
-        <CardTitle className="text-xl group-hover:text-primary transition-colors">
+        <CardTitle 
+          className="text-xl group-hover:text-primary transition-colors" 
+          id={`material-title-${material.id}`}
+        >
           {material.title}
         </CardTitle>
-        <CardDescription className="line-clamp-2">
+        <CardDescription 
+          className="line-clamp-2" 
+          id={`material-description-${material.id}`}
+        >
           {material.description || 'No description available'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <FileText className="h-4 w-4" />
+        <div className="space-y-2 text-sm" aria-label="Material details">
+          <div className="flex items-center gap-2 text-muted-foreground" aria-label="Course">
+            <FileText className="h-4 w-4" aria-hidden="true" />
             <span>{material.course}</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-muted-foreground" aria-label="Uploaded by">
+            <User className="h-4 w-4" aria-hidden="true" />
             <span>{material.uploaded_by}</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-muted-foreground" aria-label="Upload date">
+            <Calendar className="h-4 w-4" aria-hidden="true" />
             <span>{formatDate(material.created_at)}</span>
           </div>
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleDownload} className="w-full gap-2 bg-primary hover:bg-primary/90">
-          <Download className="h-4 w-4" />
+        <Button 
+          onClick={handleDownload} 
+          className="w-full gap-2 bg-primary hover:bg-primary/90" 
+          aria-label={`Download ${material.title}`}
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
           Download Material
         </Button>
       </CardFooter>

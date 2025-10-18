@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload as UploadIcon } from 'lucide-react';
 import { BulkUploadMaterial } from '@/components/BulkUploadMaterial';
+import { trackUpload } from '@/hooks/useAnalytics';
 
 interface MaterialMetadata {
   file: File;
@@ -115,6 +116,9 @@ const Upload = () => {
           });
 
         if (insertError) throw insertError;
+        
+        // Track the upload event
+        trackUpload(material.title);
       }
 
       toast({

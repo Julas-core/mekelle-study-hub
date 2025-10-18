@@ -11,6 +11,7 @@ interface MaterialsGridProps {
 export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGridProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,12 +27,15 @@ export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGrid
 
       if (error) throw error;
       setMaterials(data || []);
+      setError(null); // Clear any previous error
     } catch (error: any) {
+      setError(error.message || 'Failed to load materials');
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to load materials',
+        description: 'Failed to load materials. Please try again later.',
       });
+      console.error('Error loading materials:', error);
     } finally {
       setLoading(false);
     }
@@ -52,10 +56,29 @@ export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGrid
 
   if (loading) {
     return (
-      <section className="py-12 bg-background">
+      <section className="py-12 bg-background" aria-label="Loading materials">
         <div className="container px-4">
           <div className="text-center py-16">
-            <p className="text-xl text-muted-foreground">Loading materials...</p>
+            <p className="text-xl text-muted-foreground" role="status" aria-live="polite">Loading materials...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-12 bg-background" aria-label="Error loading materials">
+        <div className="container px-4">
+          <div className="text-center py-16">
+            <p className="text-xl text-destructive mb-2">Failed to load materials</p>
+            <p className="text-muted-foreground">Error: {error}</p>
+            <button 
+              onClick={fetchMaterials}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </section>
@@ -63,26 +86,33 @@ export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGrid
   }
 
   return (
-    <section className="py-12 bg-background">
+    <section className="py-12 bg-background" aria-label="Available course materials">
       <div className="container px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-foreground">
+          <h2 className="text-3xl font-bold text-foreground" id="materials-heading">
             Available Materials
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground" id="materials-count">
             {filteredMaterials.length} {filteredMaterials.length === 1 ? 'material' : 'materials'} found
           </p>
         </div>
 
         {filteredMaterials.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-16" role="alert" aria-live="assertive">
             <p className="text-xl text-muted-foreground">No materials found matching your criteria</p>
             <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filter</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            role="list"
+            aria-labelledby="materials-heading"
+            aria-describedby="materials-count"
+          >
             {filteredMaterials.map((material) => (
-              <MaterialCard key={material.id} material={material} />
+              <div key={material.id} role="listitem">
+                <MaterialCard material={material} />
+              </div>
             ))}
           </div>
         )}
