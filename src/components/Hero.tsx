@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import heroBanner from "@/assets/hero-banner.jpg";
+import heroBanner from "@/assets/university-gateway.jpg";
 
 interface HeroProps {
   onSearch: (query: string) => void;
