@@ -6,12 +6,14 @@ The Mekelle University Course Material Distribution Platform is a web-based appl
 
 ## Features
 
-- **User Authentication**: Separate login systems for students and administrators
-- **Material Management**: Admins can upload course materials with metadata
-- **Course Organization**: Structured by course codes and academic years
-- **Download Functionality**: Students can access and download relevant materials
-- **Responsive Design**: Works across desktop and mobile devices
-- **File Format Support**: Handles PDF, DOCX, PPTX files
+- **User Authentication**: Separate login systems for students and administrators.
+- **User Profile Management**: Users can edit their profile information, including full name, department, and student ID.
+- **Profile Picture Upload**: Users can upload and change their profile picture.
+- **Material Management**: Admins can upload course materials with metadata.
+- **Course Organization**: Structured by course codes and academic years.
+- **Download Functionality**: Students can access and download relevant materials.
+- **Responsive Design**: Works across desktop and mobile devices.
+- **File Format Support**: Handles PDF, DOCX, PPTX files.
 
 ## Technologies Used
 
@@ -22,11 +24,12 @@ This project is built with:
 - React
 - Tailwind CSS
 - shadcn-ui
+- Supabase
 
 ## User Roles
 
-- **Students**: Browse, search, and download course materials relevant to their programs
-- **Administrators**: Upload, organize, and manage course materials for different courses
+- **Students**: Browse, search, and download course materials relevant to their programs.
+- **Administrators**: Upload, organize, and manage course materials for different courses.
 
 ## Getting Started
 
@@ -42,7 +45,12 @@ cd mekelle-study-hub
 # Step 3: Install the necessary dependencies
 npm install
 
-# Step 4: Start the development server
+# Step 4: Set up your Supabase environment variables in a .env file
+
+# Step 5: Apply database migrations
+supabase db reset
+
+# Step 6: Start the development server
 npm run dev
 ```
 
@@ -54,27 +62,40 @@ npm run dev
 - `pages/` - Application pages for different user roles
 - `utils/` - Utility functions
 - `types/` - TypeScript type definitions
+- `supabase/` - Supabase configuration and migrations
 
 ## Database Schema
 
-The platform uses a JSON-based storage system with the following conceptual schema:
+The platform uses **Supabase** for its backend, which includes a PostgreSQL database. The key tables are:
 
-### Users Collection
-- `id`: Unique User ID
-- `username`: Used for Login
-- `passwordHash`: Hashed Password
-- `role`: 'Student' or 'Admin'
-- `fullName`: User's full name
-- `department`: Student/Admin's department
-- `yearOfStudy`: Student's current academic year
+### `profiles`
+- `id`: UUID (Primary Key, Foreign Key to `auth.users.id`)
+- `email`: TEXT
+- `full_name`: TEXT
+- `department`: TEXT
+- `student_id`: TEXT
+- `avatar_url`: TEXT
+- `created_at`: TIMESTAMPTZ
+- `updated_at`: TIMESTAMPTZ
 
-### Materials Collection
-- `materialId`: Unique Material ID
-- `courseCode`: e.g., 'CSEN301'
-- `title`: e.g., 'Chapter 1 Notes'
-- `fileType`: PDF, DOCX, PPTX
-- `filePath`: URL or local path to the file
-- `uploadDate`: Tracking date of upload
+### `materials`
+- `id`: UUID (Primary Key)
+- `title`: TEXT
+- `description`: TEXT
+- `department`: TEXT
+- `course`: TEXT
+- `file_type`: TEXT
+- `file_path`: TEXT
+- `file_size`: TEXT
+- `uploaded_by`: TEXT
+- `uploaded_by_user_id`: UUID (Foreign Key to `auth.users.id`)
+- `created_at`: TIMESTAMPTZ
+
+### `user_roles`
+- `id`: UUID (Primary Key)
+- `user_id`: UUID (Foreign Key to `auth.users.id`)
+- `role`: `app_role` (ENUM: 'admin', 'moderator', 'user')
+- `created_at`: TIMESTAMPTZ
 
 ## How to Contribute
 
