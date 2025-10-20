@@ -30,12 +30,12 @@ const Profile = () => {
             .from('profiles')
             .select('full_name, department, student_id, avatar_url')
             .eq('id', user.id)
-            .maybeSingle();
-
-          if (error) {
+            .single();
+          
+          if (error && error.code !== 'PGRST116') {
             throw error;
           }
-
+          
           if (data) {
             setFullName(data.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || '');
             setDepartment(data.department || '');
@@ -60,34 +60,12 @@ const Profile = () => {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-
-      if (file.size > 2 * 1024 * 1024) {
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Avatar must be less than 2MB',
-        });
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        toast({
-          variant: 'destructive',
-          title: 'Invalid file type',
-          description: 'Please upload an image file',
-        });
-        return;
-      }
-
       setUploading(true);
       try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+        const fileName = `${user!.id}/${Date.now()}`;
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, file, {
-            upsert: true
-          });
+          .upload(fileName, file);
 
         if (uploadError) {
           throw uploadError;
@@ -100,25 +78,18 @@ const Profile = () => {
         if (!data) {
           throw new Error("Could not get public URL for avatar.");
         }
-
+        
         setAvatarUrl(data.publicUrl);
 
+        // Also update the profile record
         const { error: updateError } = await supabase
           .from('profiles')
-          .upsert({
-            id: user!.id,
-            avatar_url: data.publicUrl,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+          .update({ avatar_url: data.publicUrl })
+          .eq('id', user!.id);
 
         if (updateError) {
           throw updateError;
         }
-
-        toast({
-          title: 'Avatar updated',
-          description: 'Your profile picture has been updated successfully.',
-        });
 
       } catch (error: any) {
         toast({
