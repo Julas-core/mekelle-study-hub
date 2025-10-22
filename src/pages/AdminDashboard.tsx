@@ -15,7 +15,7 @@ interface Material {
   course: string;
   uploaded_by: string;
   created_at: string;
-  file_type: string;
+  file_type?: string;
 }
 
 interface User {

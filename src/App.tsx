@@ -44,8 +44,8 @@ const App = () => {
         window.gtag = function() {
           window.dataLayer.push(arguments);
         };
-        window.gtag('js', new Date());
-        window.gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
+        (window as any).gtag('js', new Date());
+        (window as any).gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
       };
     }
   }, []);
