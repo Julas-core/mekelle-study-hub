@@ -14,9 +14,8 @@ interface Material {
   department: string;
   course: string;
   uploaded_by: string;
-  uploaded_at: string;
+  created_at: string;
   file_type: string;
-  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface User {
@@ -24,7 +23,6 @@ interface User {
   email: string | null;
   full_name: string | null;
   created_at: string;
-  role: string;
 }
 
 const AdminDashboard = () => {
@@ -58,13 +56,13 @@ const AdminDashboard = () => {
     if (materialsError) {
       console.error('Error fetching materials:', materialsError);
     } else {
-      setMaterials(materialsData as Material[]);
+      setMaterials(materialsData || []);
       
       // Calculate stats
       setStats(prev => ({
         ...prev,
         totalMaterials: materialsData.length,
-        pendingMaterials: materialsData.filter(m => m.status === 'pending').length
+        pendingMaterials: 0
       }));
     }
 
@@ -77,7 +75,7 @@ const AdminDashboard = () => {
     if (usersError) {
       console.error('Error fetching users:', usersError);
     } else {
-      setUsers(usersData as User[]);
+      setUsers(usersData || []);
       
       // Calculate stats
       setStats(prev => ({
@@ -216,10 +214,8 @@ const AdminDashboard = () => {
                           {material.course} • {material.department}
                         </p>
                       </div>
-                      <Badge variant={material.status === 'approved' ? 'default' : 
-                                    material.status === 'rejected' ? 'destructive' : 
-                                    'secondary'}>
-                        {material.status}
+                      <Badge variant="default">
+                        Active
                       </Badge>
                     </div>
                   ))}
@@ -254,33 +250,16 @@ const AdminDashboard = () => {
                           <td className="py-3">{material.department}</td>
                           <td className="py-3">{material.uploaded_by}</td>
                           <td className="py-3">
-                            <Badge variant={material.status === 'approved' ? 'default' : 
-                                          material.status === 'rejected' ? 'destructive' : 
-                                          'secondary'}>
-                              {material.status}
-                            </Badge>
+                            <Badge variant="default">Active</Badge>
                           </td>
                           <td className="py-3">
-                            {material.status === 'pending' && (
-                              <div className="flex space-x-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleApproveMaterial(material.id)}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Approve
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleRejectMaterial(material.id)}
-                                >
-                                  <X className="h-4 w-4 mr-1" />
-                                  Reject
-                                </Button>
-                              </div>
-                            )}
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -314,7 +293,7 @@ const AdminDashboard = () => {
                           <td className="py-3">{user.email || 'N/A'}</td>
                           <td className="py-3">
                             <Badge variant="outline">
-                              {user.role || 'user'}
+                              user
                             </Badge>
                           </td>
                           <td className="py-3">{new Date(user.created_at).toLocaleDateString()}</td>

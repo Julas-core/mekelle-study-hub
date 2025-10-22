@@ -41,12 +41,11 @@ const App = () => {
 
       script.onload = () => {
         window.dataLayer = window.dataLayer || [];
-        function gtag() {
+        window.gtag = function() {
           window.dataLayer.push(arguments);
-        }
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
+        };
+        window.gtag('js', new Date());
+        window.gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
       };
     }
   }, []);

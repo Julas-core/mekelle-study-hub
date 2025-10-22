@@ -58,32 +58,32 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
+          department: string | null
           email: string | null
           full_name: string | null
           id: string
-          department: string | null
-          avatar_url: string | null
           student_id: string | null
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email?: string | null
           full_name?: string | null
           id: string
-          department?: string | null
-          avatar_url?: string | null
           student_id?: string | null
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
-          department?: string | null
-          avatar_url?: string | null
           student_id?: string | null
           updated_at?: string | null
         }
@@ -122,10 +122,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin_email: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
+      is_admin_email: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
