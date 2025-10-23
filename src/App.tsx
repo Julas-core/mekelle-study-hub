@@ -45,7 +45,11 @@ function App() {
         
         if (data?.avatar_url) {
           setAvatarUrl(data.avatar_url);
+        } else {
+          setAvatarUrl(null);
         }
+      } else {
+        setAvatarUrl(null);
       }
     };
 
