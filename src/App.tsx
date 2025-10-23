@@ -39,12 +39,13 @@ function App() {
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('avatar_url')
+          .select('avatar_url, updated_at')
           .eq('id', user.id)
           .single();
         
         if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
+          const version = data.updated_at ? new Date(data.updated_at as string).getTime() : Date.now();
+          setAvatarUrl(`${data.avatar_url}?u=${user.id}&v=${version}`);
         } else {
           setAvatarUrl(null);
         }
