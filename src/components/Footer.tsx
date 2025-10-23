@@ -1,21 +1,25 @@
 import { Link } from "react-router-dom";
 import { Github, Mail, Phone, MapPin } from "lucide-react";
+// Use Vite-compatible URL import for static asset (SVG) to avoid runtime import issues
+const StudyHubLogo = new URL('../assets/Banner.png', import.meta.url).href;
 
 export const Footer = () => {
   return (
     <footer className="border-t bg-background" role="contentinfo">
       <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+  <div className="grid grid-cols-1 gap-8 md:flex md:justify-between md:items-start">
           <div>
-            <div 
-              className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold mb-4"
-              aria-label="Mekelle University Logo"
-            >
-              MU
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Mekelle University</h3>
+            <img 
+              src={StudyHubLogo} 
+              alt="MUHub Logo" 
+              className="h-10 object-contain mb-4" 
+              aria-label="MUHub Logo" 
+            />
             <p className="text-muted-foreground text-sm">
-              Empowering education through technology. Providing accessible course materials for all students.
+              Empowering education through technology.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Providing accessible course materials for all students.
             </p>
           </div>
           
@@ -29,17 +33,7 @@ export const Footer = () => {
             </ul>
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Departments</h3>
-            <ul className="space-y-2" aria-label="University departments">
-              <li className="text-muted-foreground">Computer Science</li>
-              <li className="text-muted-foreground">Engineering</li>
-              <li className="text-muted-foreground">Business</li>
-              <li className="text-muted-foreground">Medicine</li>
-              <li className="text-muted-foreground">Law</li>
-              <li className="text-muted-foreground">Education</li>
-            </ul>
-          </div>
+          {/* Departments section removed per request */}
           
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
