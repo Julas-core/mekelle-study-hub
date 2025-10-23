@@ -44,16 +44,16 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" aria-hidden="true" />
-                <span>+251-XX-XXX-XXXX</span>
+                <span>+251-93-639-3952</span>
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" aria-hidden="true" />
-                <span>info@mekelleuniversity.edu.et</span>
+                <span>julasmame@gmail.com</span>
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Github className="h-4 w-4" aria-hidden="true" />
                 <a 
-                  href="https://github.com/mekelle-university" 
+                  href="https://github.com/Julas-core?tab=repositories" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors"
