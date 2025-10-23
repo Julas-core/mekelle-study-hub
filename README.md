@@ -1,8 +1,8 @@
-# Mekelle University Course Material Distribution Platform
+# MU Study Hub Platform
 
 ## Project Overview
 
-The Mekelle University Course Material Distribution Platform is a web-based application designed to streamline the distribution of academic materials between administrators and students. This platform enables efficient sharing of course content in various formats (PDF, DOCX, PPTX) with a focus on accessibility and user experience for the Mekelle University community.
+The MU Study Hub Platform is a web-based application designed to streamline the distribution of academic materials between administrators and students. This platform enables efficient sharing of course content in various formats (PDF, DOCX, PPTX) with a focus on accessibility and user experience for the MU Study Hub community.
 
 ## Features
 
@@ -37,7 +37,7 @@ To run this project locally:
 
 ```sh
 # Step 1: Clone the repository
-git clone <repository-url>
+git clone https://github.com/Julas-core/muhub.git
 
 # Step 2: Navigate to the project directory
 cd mekelle-study-hub
@@ -106,4 +106,4 @@ The platform uses **Supabase** for its backend, which includes a PostgreSQL data
 
 ## License
 
-This project is created for educational purposes at Mekelle University.
+This project is created for educational purposes at MU Study Hub.
