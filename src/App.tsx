@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import AnalyticsWrapper from "./components/AnalyticsWrapper";
 import { Footer } from "./components/Footer";
 import Header from "./components/Header";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
@@ -30,8 +31,32 @@ declare global {
 }
 
 function App() {
-  // make the shape explicit so TS knows avatarUrl exists
-  const user: { avatarUrl?: string } = { avatarUrl: 'https://example.com/me.jpg' }; // replace with real source
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      }
+    };
+
+    fetchUserAvatar();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchUserAvatar();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <>
       <QueryClientProvider client={queryClient}>
@@ -42,7 +67,7 @@ function App() {
             <ErrorBoundary>
               <AnalyticsWrapper>
                 <div className="flex flex-col min-h-screen">
-                  <Header avatarUrl={user?.avatarUrl} />
+                  <Header avatarUrl={avatarUrl} />
                   <main className="flex-grow">
                     <Routes>
                       <Route path="/" element={<Index />} />
