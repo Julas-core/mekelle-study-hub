@@ -20,6 +20,8 @@ import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/AdminDashboard";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +62,18 @@ function App() {
       fetchUserAvatar();
     });
 
-    return () => subscription.unsubscribe();
+    const onProfileUpdated = (e: any) => {
+      const avatar = e?.detail?.avatarUrl ?? null;
+      if (avatar) setAvatarUrl(avatar);
+      else setAvatarUrl(null);
+    };
+
+    window.addEventListener('profile-updated', onProfileUpdated as EventListener);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('profile-updated', onProfileUpdated as EventListener);
+    };
   }, []);
   return (
     <>
@@ -77,6 +90,8 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
+                      <Route path="/register" element={<RegisterPage />} />
+                      <Route path="/verify-email" element={<EmailVerificationPage />} />
                       <Route path="/upload" element={<Upload />} />
                       <Route path="/about" element={<About />} />
                       <Route path="/contact" element={<Contact />} />

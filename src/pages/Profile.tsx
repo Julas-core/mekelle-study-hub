@@ -81,6 +81,13 @@ const Profile = () => {
         
         setAvatarUrl(data.publicUrl);
 
+        // Notify other parts of the app (e.g. Header) about the updated avatar
+        try {
+          window.dispatchEvent(new CustomEvent('profile-updated', { detail: { avatarUrl: data.publicUrl } }));
+        } catch (e) {
+          // ignore in environments that don't support CustomEvent
+        }
+
         // Also update the profile record
         const { error: updateError } = await supabase
           .from('profiles')
@@ -129,6 +136,13 @@ const Profile = () => {
         description: 'Your profile has been updated successfully.',
       });
       
+      // Notify other parts of the app about profile changes (avatarUrl may be null)
+      try {
+        window.dispatchEvent(new CustomEvent('profile-updated', { detail: { avatarUrl } }));
+      } catch (e) {
+        // ignore
+      }
+
       setIsEditing(false);
     } catch (error: any) {
       toast({
