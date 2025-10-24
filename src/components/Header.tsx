@@ -67,21 +67,19 @@ const Header = ({ avatarUrl }: HeaderProps) => {
               </Link>
               
               {isAdmin && (
-                <>
-                  <Link to="/admin" aria-label="Admin dashboard">
-                    <Button variant="outline" size="sm">
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      Admin
-                    </Button>
-                  </Link>
-                  <Link to="/upload" aria-label="Upload materials">
-                    <Button variant="outline" size="sm">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload
-                    </Button>
-                  </Link>
-                </>
+                <Link to="/admin" aria-label="Admin dashboard">
+                  <Button variant="outline" size="sm">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Admin
+                  </Button>
+                </Link>
               )}
+              <Link to="/upload" aria-label="Upload materials">
+                <Button variant="outline" size="sm">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload
+                </Button>
+              </Link>
               
               <Button 
                 variant="outline" 
