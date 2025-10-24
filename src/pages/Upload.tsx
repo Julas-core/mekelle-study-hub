@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload as UploadIcon } from 'lucide-react';
-import { BulkUploadMaterial } from '@/components/BulkUploadMaterial';
+import { Upload as UploadIcon, Loader2, Sparkles } from 'lucide-react';
 import { trackUpload } from '@/hooks/useAnalytics';
 import { MEKELLE_UNIVERSITY_SCHOOLS } from '@/constants/colleges';
 
@@ -18,12 +17,12 @@ interface MaterialMetadata {
   courseCode: string;
   title: string;
   description: string;
+  school: string;
+  department: string;
   generating: boolean;
 }
 
 const Upload = () => {
-  const [school, setSchool] = useState('');
-  const [department, setDepartment] = useState('');
   const [materials, setMaterials] = useState<MaterialMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user, isAdmin, loading } = useAuth();
@@ -40,6 +39,90 @@ const Upload = () => {
       navigate('/');
     }
   }, [user, isAdmin, loading, navigate, toast]);
+
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files) return;
+
+    const newMaterials: MaterialMetadata[] = Array.from(files).map(file => ({
+      file,
+      courseCode: '',
+      title: '',
+      description: '',
+      school: '',
+      department: '',
+      generating: false, // Don't start generating until school and department are selected
+    }));
+
+    setMaterials(prev => [...prev, ...newMaterials]);
+  };
+
+  const updateMaterial = (index: number, field: 'school' | 'department', value: string) => {
+    setMaterials(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      
+      // If both school and department are selected, trigger AI metadata generation
+      if (field === 'department' && value && updated[index].school) {
+        updated[index].generating = true;
+        generateMetadata(index, updated[index].school, value, updated[index].file);
+      }
+      
+      return updated;
+    });
+  };
+
+  const generateMetadata = async (index: number, school: string, department: string, file: File) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-material-metadata`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          department: department, // Using department as school info is already separated
+        }),
+      });
+
+      if (response.ok) {
+        const { courseCode, title, description } = await response.json();
+        setMaterials(prev => {
+          const updated = [...prev];
+          if (index < updated.length) {
+            updated[index] = { 
+              ...updated[index], 
+              courseCode, 
+              title, 
+              description, 
+              generating: false 
+            };
+          }
+          return updated;
+        });
+      } else {
+        throw new Error('Failed to generate metadata');
+      }
+    } catch (error) {
+      console.error('Error generating metadata:', error);
+      setMaterials(prev => {
+        const updated = [...prev];
+        if (index < updated.length) {
+          updated[index] = { 
+            ...updated[index],
+            title: file.name, 
+            description: '', 
+            generating: false 
+          };
+        }
+        return updated;
+      });
+    }
+  };
+
+  const removeMaterial = (index: number) => {
+    setMaterials(prev => prev.filter((_, i) => i !== index));
+  };
 
   const getFileType = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase();
@@ -70,12 +153,12 @@ const Upload = () => {
       return;
     }
 
-    // Check if all materials have course codes and titles
-    if (materials.some(m => !m.courseCode.trim() || !m.title.trim())) {
+    // Check if all materials have school, department, course codes and titles
+    if (materials.some(m => !m.school.trim() || !m.department.trim() || !m.courseCode.trim() || !m.title.trim())) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please provide course codes and titles for all materials.',
+        description: 'Please provide school, department, course codes and titles for all materials.',
       });
       return;
     }
@@ -95,7 +178,7 @@ const Upload = () => {
       // Upload all materials
       for (const material of materials) {
         // Upload file to storage
-        const filePath = `${school}/${department}/${material.courseCode}/${Date.now()}_${material.file.name}`;
+        const filePath = `${material.school}/${material.department}/${material.courseCode}/${Date.now()}_${material.file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('course-materials')
           .upload(filePath, material.file);
@@ -108,7 +191,7 @@ const Upload = () => {
           .insert({
             title: material.title,
             description: material.description,
-            department: department, // Store the selected department
+            department: material.department, // Store the selected department
             course: material.courseCode,
             file_type: getFileType(material.file.name),
             file_path: filePath,
@@ -129,8 +212,6 @@ const Upload = () => {
       });
 
       // Reset form
-      setSchool('');
-      setDepartment('');
       setMaterials([]);
       navigate('/');
     } catch (error: any) {
@@ -144,15 +225,13 @@ const Upload = () => {
     }
   };
 
-  const departmentsForSchool = school ? MEKELLE_UNIVERSITY_SCHOOLS[school as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [] : [];
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <div className="container max-w-2xl mx-auto py-8">
+      <div className="container max-w-4xl mx-auto py-8">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -166,43 +245,103 @@ const Upload = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="school">School *</Label>
-                <Select value={school} onValueChange={(value) => {
-                  setSchool(value);
-                  setDepartment(''); // Reset department when school changes
-                }} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select school" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(MEKELLE_UNIVERSITY_SCHOOLS).map((schoolName) => (
-                      <SelectItem key={schoolName} value={schoolName}>{schoolName}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="files">Select Files</Label>
+                <Input
+                  id="files"
+                  type="file"
+                  onChange={(e) => handleFilesSelected(e.target.files)}
+                  multiple
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi,.mov"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Select multiple files to upload
+                </p>
               </div>
 
-              {school && (
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department *</Label>
-                  <Select value={department} onValueChange={setDepartment} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departmentsForSchool.map((dept) => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {materials.length > 0 && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Selected Materials ({materials.length})
+                  </div>
+                  
+                  {materials.map((material, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{material.file.name}</p>
+                            <span className="text-xs text-muted-foreground">
+                              ({formatFileSize(material.file.size)})
+                            </span>
+                          </div>
+                          
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeMaterial(index)}
+                            disabled={material.generating}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          </Button>
+                        </div>
 
-              {department && (
-                <BulkUploadMaterial
-                  department={department} // Pass the selected department
-                  onMaterialsChange={setMaterials}
-                />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`school-${index}`}>School *</Label>
+                            <Select 
+                              value={material.school} 
+                              onValueChange={(value) => updateMaterial(index, 'school', value)} 
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select school" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.keys(MEKELLE_UNIVERSITY_SCHOOLS).map((schoolName) => (
+                                  <SelectItem key={schoolName} value={schoolName}>{schoolName}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`department-${index}`}>Department *</Label>
+                            <Select 
+                              value={material.department} 
+                              onValueChange={(value) => updateMaterial(index, 'department', value)} 
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select department" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {material.school ? 
+                                  (MEKELLE_UNIVERSITY_SCHOOLS[material.school as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || []).map((dept) => (
+                                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                  )) : 
+                                  Object.values(MEKELLE_UNIVERSITY_SCHOOLS).flat().map((dept, idx) => (
+                                    <SelectItem key={idx} value={dept}>{dept}</SelectItem>
+                                  ))
+                                }
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {material.generating && (
+                          <div className="flex items-center gap-2 text-sm text-primary">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Generating metadata with AI...
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               )}
 
               <div className="flex gap-2">
