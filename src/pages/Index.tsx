@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { Hero } from "@/components/Hero";
-import { DepartmentFilter } from "@/components/DepartmentFilter";
+import { CollegeFilter } from "@/components/CollegeFilter";
 import { MaterialsGrid } from "@/components/MaterialsGrid";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
+  const [selectedCollege, setSelectedCollege] = useState("All Colleges");
 
   return (
     <div className="min-h-screen bg-background">
       <Hero onSearch={setSearchQuery} />
-      <DepartmentFilter 
-        selected={selectedDepartment} 
-        onSelect={setSelectedDepartment} 
+      <CollegeFilter 
+        selected={selectedCollege} 
+        onSelect={setSelectedCollege} 
       />
       <MaterialsGrid 
         searchQuery={searchQuery}
-        selectedDepartment={selectedDepartment}
+        selectedCollege={selectedCollege}
       />
     </div>
   );

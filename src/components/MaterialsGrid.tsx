@@ -9,10 +9,10 @@ import { Button } from "./ui/button";
 
 interface MaterialsGridProps {
   searchQuery: string;
-  selectedDepartment: string;
+  selectedCollege: string;
 }
 
-export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGridProps) => {
+export const MaterialsGrid = ({ searchQuery, selectedCollege }: MaterialsGridProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +53,11 @@ export const MaterialsGrid = ({ searchQuery, selectedDepartment }: MaterialsGrid
       (material.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       material.course.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDepartment = 
-      selectedDepartment === "All Departments" || 
-      material.department === selectedDepartment;
+    const matchesCollege = 
+      selectedCollege === "All Colleges" || 
+      material.department === selectedCollege;
 
-    return matchesSearch && matchesDepartment;
+    return matchesSearch && matchesCollege;
   });
 
   if (!user) {

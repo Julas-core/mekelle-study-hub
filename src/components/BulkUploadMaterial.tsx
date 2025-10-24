@@ -15,7 +15,7 @@ interface MaterialMetadata {
 }
 
 interface BulkUploadMaterialProps {
-  department: string;
+  department: string; // Keep prop name to maintain compatibility but use college value
   onMaterialsChange: (materials: MaterialMetadata[]) => void;
 }
 
