@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Upload as UploadIcon } from 'lucide-react';
 import { BulkUploadMaterial } from '@/components/BulkUploadMaterial';
 import { trackUpload } from '@/hooks/useAnalytics';
-import { MEKELLE_UNIVERSITY_COLLEGES } from '@/constants/colleges';
+import { MEKELLE_UNIVERSITY_SCHOOLS } from '@/constants/colleges';
 
 interface MaterialMetadata {
   file: File;
@@ -22,7 +22,8 @@ interface MaterialMetadata {
 }
 
 const Upload = () => {
-  const [college, setCollege] = useState('');
+  const [school, setSchool] = useState('');
+  const [department, setDepartment] = useState('');
   const [materials, setMaterials] = useState<MaterialMetadata[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user, isAdmin, loading } = useAuth();
@@ -94,7 +95,7 @@ const Upload = () => {
       // Upload all materials
       for (const material of materials) {
         // Upload file to storage
-        const filePath = `${college}/${material.courseCode}/${Date.now()}_${material.file.name}`;
+        const filePath = `${school}/${department}/${material.courseCode}/${Date.now()}_${material.file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('course-materials')
           .upload(filePath, material.file);
@@ -107,7 +108,7 @@ const Upload = () => {
           .insert({
             title: material.title,
             description: material.description,
-            department: college, // Keep using department field to maintain DB compatibility
+            department: department, // Store the selected department
             course: material.courseCode,
             file_type: getFileType(material.file.name),
             file_path: filePath,
@@ -128,7 +129,8 @@ const Upload = () => {
       });
 
       // Reset form
-      setCollege('');
+      setSchool('');
+      setDepartment('');
       setMaterials([]);
       navigate('/');
     } catch (error: any) {
@@ -141,6 +143,8 @@ const Upload = () => {
       setUploading(false);
     }
   };
+
+  const departmentsForSchool = school ? MEKELLE_UNIVERSITY_SCHOOLS[school as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [] : [];
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -162,22 +166,41 @@ const Upload = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="college">College *</Label>
-                <Select value={college} onValueChange={setCollege} required>
+                <Label htmlFor="school">School *</Label>
+                <Select value={school} onValueChange={(value) => {
+                  setSchool(value);
+                  setDepartment(''); // Reset department when school changes
+                }} required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select college" />
+                    <SelectValue placeholder="Select school" />
                   </SelectTrigger>
                   <SelectContent>
-                    {MEKELLE_UNIVERSITY_COLLEGES.map((college) => (
-                      <SelectItem key={college} value={college}>{college}</SelectItem>
+                    {Object.keys(MEKELLE_UNIVERSITY_SCHOOLS).map((schoolName) => (
+                      <SelectItem key={schoolName} value={schoolName}>{schoolName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {college && (
+              {school && (
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department *</Label>
+                  <Select value={department} onValueChange={setDepartment} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departmentsForSchool.map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {department && (
                 <BulkUploadMaterial
-                  department={college} // Use college value but keep prop name to maintain compatibility
+                  department={department} // Pass the selected department
                   onMaterialsChange={setMaterials}
                 />
               )}

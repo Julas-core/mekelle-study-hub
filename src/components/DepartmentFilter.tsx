@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { MEKELLE_UNIVERSITY_COLLEGES } from "@/constants/colleges";
+import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
 
-const colleges = [
-  "All Colleges",
-  ...MEKELLE_UNIVERSITY_COLLEGES
+const schools = [
+  "All Schools",
+  ...Object.keys(MEKELLE_UNIVERSITY_SCHOOLS)
 ];
 
 interface DepartmentFilterProps {
@@ -22,16 +22,16 @@ export const DepartmentFilter = ({ selected, onSelect }: DepartmentFilterProps) 
   return (
     <section 
       className="py-8 border-b bg-card" 
-      aria-label="College filter"
+      aria-label="School filter"
     >
       <div className="container px-4">
-        <h2 className="text-2xl font-semibold mb-4 text-foreground">Browse by College</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-foreground">Browse by School</h2>
         <div 
           className="flex flex-wrap gap-2"
           role="group"
-          aria-label="College selection"
+          aria-label="School selection"
         >
-          {colleges.map((department) => (
+          {schools.map((department) => (
             <Button
               key={department}
               variant={selected === department ? "default" : "outline"}

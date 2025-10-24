@@ -5,18 +5,18 @@ import { MaterialsGrid } from "@/components/MaterialsGrid";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("All Colleges");
+  const [selectedSchool, setSelectedSchool] = useState("All Schools");
 
   return (
     <div className="min-h-screen bg-background">
       <Hero onSearch={setSearchQuery} />
       <DepartmentFilter 
-        selected={selectedDepartment} 
-        onSelect={setSelectedDepartment} 
+        selected={selectedSchool} 
+        onSelect={setSelectedSchool} 
       />
       <MaterialsGrid 
         searchQuery={searchQuery}
-        selectedCollege={selectedDepartment}
+        selectedSchool={selectedSchool}
       />
     </div>
   );

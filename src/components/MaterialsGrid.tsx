@@ -6,13 +6,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { Button } from "./ui/button";
+import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
 
 interface MaterialsGridProps {
   searchQuery: string;
-  selectedCollege: string;
+  selectedSchool: string;
 }
 
-export const MaterialsGrid = ({ searchQuery, selectedCollege }: MaterialsGridProps) => {
+export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +54,16 @@ export const MaterialsGrid = ({ searchQuery, selectedCollege }: MaterialsGridPro
       (material.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       material.course.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDepartment = 
-      selectedCollege === "All Colleges" || 
-      material.department === selectedCollege; // Using "department" field in DB but with college values
+    // If "All Schools" is selected, show all materials
+    if (selectedSchool === "All Schools") {
+      return matchesSearch;
+    }
 
-    return matchesSearch && matchesDepartment;
+    // Check if the material's department belongs to the selected school
+    const departmentsInSchool = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
+    const matchesSchool = departmentsInSchool.includes(material.department);
+
+    return matchesSearch && matchesSchool;
   });
 
   if (!user) {

@@ -1,11 +1,52 @@
-export const MEKELLE_UNIVERSITY_COLLEGES = [
-  "College of Business and Economics",
-  "College of Dryland Agriculture and Natural Resources Management",
-  "College of Law and Governance",
-  "College of Social Sciences and Languages",
-  "College of Natural and Computational Sciences",
-  "College of Health Sciences",
-  "College of Veterinary Science"
-] as const;
+// Schools and their departments structure
+export const MEKELLE_UNIVERSITY_SCHOOLS = {
+  "School of Business and Economics": [
+    "Accounting",
+    "Economics",
+    "Management",
+    "Finance",
+    "Marketing"
+  ],
+  "School of Agriculture and Natural Resources": [
+    "Agriculture",
+    "Natural Resources Management",
+    "Dryland Agriculture",
+    "Environmental Science"
+  ],
+  "School of Law and Governance": [
+    "Law",
+    "Public Administration",
+    "Political Science",
+    "International Relations"
+  ],
+  "School of Social Sciences and Languages": [
+    "Sociology",
+    "Psychology",
+    "Linguistics",
+    "Anthropology",
+    "History"
+  ],
+  "School of Natural and Computational Sciences": [
+    "Mathematics",
+    "Physics",
+    "Chemistry",
+    "Biology",
+    "Computer Science",
+    "Statistics"
+  ],
+  "School of Health Sciences": [
+    "Medicine",
+    "Nursing",
+    "Public Health",
+    "Pharmacy",
+    "Biomedical Sciences"
+  ],
+  "School of Veterinary Science": [
+    "Veterinary Medicine",
+    "Veterinary Public Health",
+    "Animal Science"
+  ]
+} as const;
 
-export type College = typeof MEKELLE_UNIVERSITY_COLLEGES[number]; 
+export type School = keyof typeof MEKELLE_UNIVERSITY_SCHOOLS;
+export type Department = typeof MEKELLE_UNIVERSITY_SCHOOLS[School][number]; 
