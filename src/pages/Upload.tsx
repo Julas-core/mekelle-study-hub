@@ -30,15 +30,15 @@ const Upload = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
+    if (!loading && !user) {
       toast({
         variant: 'destructive',
         title: 'Access Denied',
-        description: 'Only administrators can upload materials.',
+        description: 'You must be signed in to upload materials.',
       });
       navigate('/');
     }
-  }, [user, isAdmin, loading, navigate, toast]);
+  }, [user, loading, navigate, toast]);
 
   const handleFilesSelected = async (files: FileList | null) => {
     if (!files) return;
@@ -166,6 +166,28 @@ const Upload = () => {
     setUploading(true);
 
     try {
+      // Check for duplicates using AI
+      const materialsWithDuplicates = [];
+      for (const material of materials) {
+        const hasDuplicate = await checkForDuplicate(material);
+        if (hasDuplicate) {
+          materialsWithDuplicates.push(material);
+        }
+      }
+
+      // If duplicates are found, show user a message and ask for confirmation
+      if (materialsWithDuplicates.length > 0) {
+        const duplicateNames = materialsWithDuplicates.map(m => m.title).join(', ');
+        const shouldContinue = window.confirm(
+          `Duplicate materials detected: ${duplicateNames}. Are you sure you want to proceed with upload?`
+        );
+        
+        if (!shouldContinue) {
+          setUploading(false);
+          return;
+        }
+      }
+
       // Get user profile once
       const { data: profile } = await supabase
         .from('profiles')
@@ -222,6 +244,37 @@ const Upload = () => {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const checkForDuplicate = async (material: MaterialMetadata): Promise<boolean> => {
+    try {
+      // Use AI to determine if this material already exists in the database
+      // by comparing title, course, and department information
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-duplicate-material`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          title: material.title,
+          course: material.courseCode,
+          department: material.department,
+          school: material.school,
+          fileName: material.file.name,
+          fileSize: material.file.size,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.isDuplicate || false;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking for duplicate:', error);
+      return false; // If there's an error, continue with the upload to be safe
     }
   };
 

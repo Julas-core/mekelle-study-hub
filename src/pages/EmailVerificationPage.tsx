@@ -70,6 +70,18 @@ const EmailVerificationPage = () => {
               <h3 className="mt-2 text-sm font-medium text-gray-900">Verification Successful!</h3>
               <div className="mt-2 text-sm text-gray-500">
                 <p>{message}</p>
+                <p className="mt-4 font-medium">
+                  Welcome to Mekelle University Study Hub! 
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  We're excited to have you as part of our academic community. 
+                  Your contribution matters greatly - if you have any educational materials, 
+                  notes, or resources that could benefit fellow students, 
+                  we kindly invite you to share them on our platform. 
+                  By uploading your materials, you're helping create an environment 
+                  where students can proactively access resources and enhance their learning experience 
+                  without waiting for traditional distribution methods.
+                </p>
               </div>
             </div>
           )}
