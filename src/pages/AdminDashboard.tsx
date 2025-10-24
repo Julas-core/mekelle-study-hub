@@ -68,46 +68,48 @@ const AdminDashboard = () => {
       }));
     }
 
-    // Fetch users for admin dashboard using a server function that bypasses RLS
-    let usersData = [];
-    let usersError = null;
-    
-    try {
-      // In a real implementation, we'd call a Supabase Edge Function with service role
-      // that can bypass RLS policies for admin users
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-all-users`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        usersData = await response.json();
+    // Fetch all users for admin dashboard
+    // The RLS policy in Supabase needs to be configured to allow admin users to view all profiles
+    const { data: usersData, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, avatar_url, created_at')
+      .order('created_at', { ascending: false });
+
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
+    } else {
+      // Fetch admin roles for all users
+      const userIds = usersData?.map(u => u.id) || [];
+      const { data: adminRoles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('user_id', userIds)
+        .eq('role', 'admin');
+
+      if (roleError) {
+        console.error('Error fetching admin roles:', roleError);
+        // Still set users even if role fetching fails
+        const usersWithAdminStatus = usersData?.map(user => ({
+          ...user,
+          is_admin: false // Default to false if we can't fetch roles
+        })) || [];
+        
+        setUsers(usersWithAdminStatus);
       } else {
-        // Fallback: try direct supabase query (will be limited by RLS)
-        const result = await supabase
-          .from('profiles')
-          .select('id, email, full_name, avatar_url, created_at')
-          .order('created_at', { ascending: false });
+        // Map admin status to users
+        const usersWithAdminStatus = usersData?.map(user => ({
+          ...user,
+          is_admin: adminRoles?.some(role => role.user_id === user.id) || false
+        })) || [];
         
-        usersData = result.data || [];
-        usersError = result.error;
+        setUsers(usersWithAdminStatus);
       }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      // Fallback to direct query if function call fails
-      try {
-        const result = await supabase
-          .from('profiles')
-          .select('id, email, full_name, avatar_url, created_at')
-          .order('created_at', { ascending: false });
-        
-        usersData = result.data || [];
-      } catch (fallbackError) {
-        usersError = fallbackError as any;
-      }
+      
+      // Calculate stats
+      setStats(prev => ({
+        ...prev,
+        totalUsers: usersData.length
+      }));
     }
 
     if (usersError) {
