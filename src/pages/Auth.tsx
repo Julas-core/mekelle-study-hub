@@ -42,10 +42,9 @@ const Auth = () => {
         if (error) throw error;
         
         toast({
-          title: 'Account created!',
-          description: 'You have successfully signed up.',
+          title: 'Check your email!',
+          description: 'We sent you a verification link. Please verify your email to continue.',
         });
-        navigate('/');
       }
     } catch (error: any) {
       toast({
