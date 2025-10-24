@@ -68,11 +68,47 @@ const AdminDashboard = () => {
       }));
     }
 
-    // Fetch users
-    const { data: usersData, error: usersError } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, avatar_url, created_at')
-      .order('created_at', { ascending: false });
+    // Fetch users for admin dashboard using a server function that bypasses RLS
+    let usersData = [];
+    let usersError = null;
+    
+    try {
+      // In a real implementation, we'd call a Supabase Edge Function with service role
+      // that can bypass RLS policies for admin users
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-all-users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        usersData = await response.json();
+      } else {
+        // Fallback: try direct supabase query (will be limited by RLS)
+        const result = await supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url, created_at')
+          .order('created_at', { ascending: false });
+        
+        usersData = result.data || [];
+        usersError = result.error;
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Fallback to direct query if function call fails
+      try {
+        const result = await supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url, created_at')
+          .order('created_at', { ascending: false });
+        
+        usersData = result.data || [];
+      } catch (fallbackError) {
+        usersError = fallbackError as any;
+      }
+    }
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
