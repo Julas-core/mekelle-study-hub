@@ -6,16 +6,16 @@ const colleges = [
   ...MEKELLE_UNIVERSITY_COLLEGES
 ];
 
-interface CollegeFilterProps {
+interface DepartmentFilterProps {
   selected: string;
-  onSelect: (college: string) => void;
+  onSelect: (department: string) => void;
 }
 
-export const CollegeFilter = ({ selected, onSelect }: CollegeFilterProps) => {
-  const handleKeyDown = (e: React.KeyboardEvent, college: string) => {
+export const DepartmentFilter = ({ selected, onSelect }: DepartmentFilterProps) => {
+  const handleKeyDown = (e: React.KeyboardEvent, department: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onSelect(college);
+      onSelect(department);
     }
   };
 
@@ -31,18 +31,18 @@ export const CollegeFilter = ({ selected, onSelect }: CollegeFilterProps) => {
           role="group"
           aria-label="College selection"
         >
-          {colleges.map((college) => (
+          {colleges.map((department) => (
             <Button
-              key={college}
-              variant={selected === college ? "default" : "outline"}
-              onClick={() => onSelect(college)}
-              onKeyDown={(e) => handleKeyDown(e, college)}
+              key={department}
+              variant={selected === department ? "default" : "outline"}
+              onClick={() => onSelect(department)}
+              onKeyDown={(e) => handleKeyDown(e, department)}
               className="transition-all"
-              aria-pressed={selected === college}
+              aria-pressed={selected === department}
               role="tab"
               tabIndex={0}
             >
-              {college}
+              {department}
             </Button>
           ))}
         </div>

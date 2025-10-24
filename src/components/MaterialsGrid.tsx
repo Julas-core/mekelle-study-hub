@@ -53,11 +53,11 @@ export const MaterialsGrid = ({ searchQuery, selectedCollege }: MaterialsGridPro
       (material.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       material.course.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCollege = 
+    const matchesDepartment = 
       selectedCollege === "All Colleges" || 
-      material.department === selectedCollege;
+      material.department === selectedCollege; // Using "department" field in DB but with college values
 
-    return matchesSearch && matchesCollege;
+    return matchesSearch && matchesDepartment;
   });
 
   if (!user) {
