@@ -22,7 +22,9 @@ interface User {
   id: string;
   email: string | null;
   full_name: string | null;
+  avatar_url: string | null;
   created_at: string;
+  is_admin?: boolean;
 }
 
 const AdminDashboard = () => {
@@ -69,13 +71,31 @@ const AdminDashboard = () => {
     // Fetch users
     const { data: usersData, error: usersError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, email, full_name, avatar_url, created_at')
       .order('created_at', { ascending: false });
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
     } else {
-      setUsers(usersData || []);
+      // Fetch admin roles for all users
+      const userIds = usersData?.map(u => u.id) || [];
+      const { data: adminRoles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('user_id', userIds)
+        .eq('role', 'admin');
+
+      if (roleError) {
+        console.error('Error fetching admin roles:', roleError);
+      } else {
+        // Map admin status to users
+        const usersWithAdminStatus = usersData?.map(user => ({
+          ...user,
+          is_admin: adminRoles?.some(role => role.user_id === user.id) || false
+        })) || [];
+        
+        setUsers(usersWithAdminStatus);
+      }
       
       // Calculate stats
       setStats(prev => ({
@@ -102,6 +122,84 @@ const AdminDashboard = () => {
     // In a real implementation, update material status to rejected
     console.log(`Rejecting material ${id}`);
     await fetchData(); // Refresh data
+  };
+
+  const handleGrantAdmin = async (userId: string, userEmail: string | null) => {
+    if (!window.confirm(`Are you sure you want to grant admin access to this user?`)) {
+      return;
+    }
+
+    try {
+      // Insert a record into user_roles to make the user an admin
+      const { error } = await supabase
+        .from('user_roles')
+        .insert([{ user_id: userId, role: 'admin' }]);
+
+      if (error) {
+        console.error('Error granting admin access:', error);
+        // Check if it's a duplicate key error - user might already be an admin
+        if (error.code === '23505') { // Unique violation error code in PostgreSQL
+          // Update the existing record instead
+          const { error: updateError } = await supabase
+            .from('user_roles')
+            .update({ role: 'admin' })
+            .eq('user_id', userId)
+            .eq('role', 'admin'); // This ensures we're only updating admin role records
+          
+          if (updateError) {
+            throw updateError;
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      // Send email notification to the user
+      if (userEmail) {
+        await sendAdminNotificationEmail(userEmail);
+      }
+
+      // Refresh data to update the UI
+      await fetchData();
+    } catch (error) {
+      console.error('Error granting admin access:', error);
+      alert('Failed to grant admin access. Please try again.');
+    }
+  };
+
+  const sendAdminNotificationEmail = async (email: string) => {
+    try {
+      // In a real implementation, this would call a backend function to send an email
+      // For now, we'll simulate this with a fetch call to a hypothetical email service
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-admin-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ 
+          email,
+          subject: "Elevated Privileges: Your Contribution to Mekelle University Study Hub Community",
+          content: `Dear Contributor,
+
+            We are pleased to inform you that your access level has been elevated to Administrator on the Mekelle University Study Hub Platform. Your expertise and dedication have been recognized as valuable assets to our academic community.
+            
+            As an administrator, you now have the capability to upload educational resources that will directly impact the academic success of our students. Your materials will facilitate a more streamlined learning environment, reducing dependency on traditional distribution methods and enabling students to access resources instantly.
+            
+            We invite you to take this opportunity to share any academic materials you possess. By uploading your course materials, presentations, and resources, you're not just contributing to a repository – you're actively shaping an environment where students can take charge of their learning journey, stay ahead in their studies, and access materials without waiting.
+            
+            The platform's intuitive upload interface allows for easy categorization by school and department, ensuring your contributions reach the appropriate audience. Your administrative access also provides you with analytics on material utilization, allowing you to see the direct impact of your contributions.
+            
+            We appreciate your commitment to enhancing the educational experience for our students.
+            
+            Best regards,
+            Mekelle University Study Hub Administration`
+        }),
+      });
+    } catch (error) {
+      console.error('Error sending notification email:', error);
+      // If email sending fails, we still granted the admin access, so don't show an error to the user
+    }
   };
 
   if (loading) {
@@ -280,23 +378,56 @@ const AdminDashboard = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
+                        <th className="text-left py-2">Profile</th>
                         <th className="text-left py-2">Name</th>
                         <th className="text-left py-2">Email</th>
                         <th className="text-left py-2">Role</th>
                         <th className="text-left py-2">Join Date</th>
+                        <th className="text-left py-2">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id} className="border-b">
-                          <td className="py-3">{user.full_name || 'N/A'}</td>
-                          <td className="py-3">{user.email || 'N/A'}</td>
+                      {users.map((userItem) => (
+                        <tr key={userItem.id} className="border-b">
                           <td className="py-3">
-                            <Badge variant="outline">
-                              user
+                            <div className="flex items-center">
+                              {userItem.avatar_url ? (
+                                <img 
+                                  src={userItem.avatar_url} 
+                                  alt={`${userItem.full_name || userItem.email}'s avatar`} 
+                                  className="h-10 w-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                                  <span className="text-sm font-medium">
+                                    {userItem.full_name ? userItem.full_name.charAt(0).toUpperCase() : userItem.email?.charAt(0).toUpperCase() || '?'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3">{userItem.full_name || 'N/A'}</td>
+                          <td className="py-3">{userItem.email || 'N/A'}</td>
+                          <td className="py-3">
+                            <Badge variant={userItem.is_admin ? 'default' : 'outline'}>
+                              {userItem.is_admin ? 'admin' : 'user'}
                             </Badge>
                           </td>
-                          <td className="py-3">{new Date(user.created_at).toLocaleDateString()}</td>
+                          <td className="py-3">{new Date(userItem.created_at).toLocaleDateString()}</td>
+                          <td className="py-3">
+                            {userItem.id !== user?.id && !userItem.is_admin && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => handleGrantAdmin(userItem.id, userItem.email || '')}
+                              >
+                                Grant Admin
+                              </Button>
+                            )}
+                            {userItem.is_admin && (
+                              <span className="text-sm text-muted-foreground">Admin</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
