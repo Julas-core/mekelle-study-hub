@@ -194,8 +194,12 @@ const AdminDashboard = () => {
           ? `${(newFile.size / 1024).toFixed(1)} KB`
           : `${(newFile.size / 1024 / 1024).toFixed(2)} MB`;
         const path = `${editing.id}/${Date.now()}_${newFile.name}`;
-        const { error: uploadError } = await supabase.storage.from('course-materials').upload(path, newFile);
+        const { error: uploadError } = await supabase.storage.from('course-materials').upload(path, newFile, { upsert: true });
         if (uploadError) throw uploadError;
+        // attempt to remove old file if exists
+        if (editing.file_path) {
+          try { await supabase.storage.from('course-materials').remove([editing.file_path]); } catch {}
+        }
         updates.file_path = path;
         updates.file_type = file_type;
         updates.file_size = sizeStr;
