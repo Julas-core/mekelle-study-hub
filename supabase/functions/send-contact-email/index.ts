@@ -17,6 +17,18 @@ interface ContactEmailRequest {
   message: string;
 }
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,19 +60,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send email to admin
+    // Send email to admin with sanitized inputs
     const emailResponse = await resend.emails.send({
       from: "Mekelle University <onboarding@resend.dev>",
       to: ["julasmame@gmail.com"],
-      subject: `Contact Form: ${subject}`,
+      subject: `Contact Form: ${escapeHtml(subject)}`,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${firstName} ${lastName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${escapeHtml(firstName)} ${escapeHtml(lastName)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         <hr />
         <h3>Message:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
       `,
     });
 

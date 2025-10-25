@@ -1,7 +1,7 @@
 project_id = "qbcrkpgndedocghyvisv"
 
 [functions.generate-material-metadata]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-contact-email]
 verify_jwt = false
@@ -10,4 +10,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.check-duplicate-material]
-verify_jwt = false
+verify_jwt = true

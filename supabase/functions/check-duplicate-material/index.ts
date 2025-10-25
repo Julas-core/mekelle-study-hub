@@ -33,9 +33,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Search for similar materials in the database
     const { data: existingMaterials, error: dbError } = await supabase
       .from("materials")
-      .select("id, title, file_name, course_name, department, description, file_type, created_at")
+      .select("id, title, file_path, course, department, description, file_type, created_at")
       .eq("department", department)
-      .or(`course_name.ilike.%${courseName}%,file_name.ilike.%${fileName}%`);
+      .or(`course.ilike.%${courseName}%,file_path.ilike.%${fileName}%`);
 
     if (dbError) {
       console.error("Database error:", dbError);
@@ -70,8 +70,8 @@ I'm about to upload a file with these details:
 I found these existing materials in the database:
 ${existingMaterials.map((m, i) => `
 ${i + 1}. Title: ${m.title}
-   File Name: ${m.file_name}
-   Course: ${m.course_name}
+   File Path: ${m.file_path}
+   Course: ${m.course}
    Type: ${m.file_type}
    Description: ${m.description || "No description"}
    Uploaded: ${new Date(m.created_at).toLocaleDateString()}
