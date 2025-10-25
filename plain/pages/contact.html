@@ -23,12 +23,32 @@
 </div>
 
 <script>
-// Simple client-side contact handler: posts to local /send-email if available, otherwise logs the payload.
+// Contact handler: prefer Supabase Edge Function `send-contact-email` if available; otherwise try the local demo server; otherwise fallback to console.
+import { supabase } from '../js/supabase-client.js'
+
 const form = document.getElementById('contactForm')
 form?.addEventListener('submit', async (e) => {
   e.preventDefault()
   const fd = new FormData(form)
   const payload = Object.fromEntries(fd.entries())
+
+  // Try Supabase Edge Function first (if supabase client configured)
+  if(supabase){
+    try{
+      // supabase.functions.invoke is available only when Supabase client is configured to call edge functions
+      if(typeof supabase.functions?.invoke === 'function'){
+        const { data, error } = await supabase.functions.invoke('send-contact-email', { body: payload })
+        if(error) throw error
+        alert('Message sent via Supabase Edge Function.')
+        form.reset()
+        return
+      }
+    }catch(err){
+      console.warn('Supabase function failed, falling back', err)
+    }
+  }
+
+  // Next: try local demo server
   try{
     const res = await fetch('http://localhost:3001/send-email', {
       method: 'POST',
@@ -43,6 +63,7 @@ form?.addEventListener('submit', async (e) => {
   }catch(err){
     console.warn('Local send failed, falling back to console', err)
   }
+
   console.log('Contact payload:', payload)
   alert('Message prepared — check console (no server available).')
 })

@@ -66,6 +66,20 @@ Routes available in the plain scaffold
 
 Open these via the hash routes, e.g. `http://localhost:5173/plain/index.html#/upload`.
 
+Push changes (optional)
+ - To push the commits made locally to the remote repository run:
+
+```pwsh
+git push origin main
+```
+
+Environment variables
+ - `RESEND_API_KEY` — required by `plain/server/index.js` to send emails via Resend.
+ - The Supabase public anon key and URL are already present in `plain/js/config.js`. Do NOT add service_role keys to the client.
+
+Troubleshooting
+ - If an admin or privileged action fails, check Supabase RLS policies and storage bucket permissions. Client-side anon key will be blocked from privileged operations without proper RLS or server endpoints.
+
 Next steps / migration tips
 - Port one page at a time. Use `js/app.js` as the starting point and progressively replicate components.
 - Move server work (email sending, tokens, service_role actions) to serverless functions or an API; call them from this client scaffold.
