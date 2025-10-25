@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, User, FileText, Eye, X, AlertCircle, MoreHorizontal, Check } from "lucide-react";
+import { Upload, User, FileText, Eye, X, AlertCircle, MoreHorizontal, Check, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Material {
@@ -16,7 +20,10 @@ interface Material {
   course: string;
   uploaded_by: string;
   created_at: string;
+  description?: string | null;
   file_type?: string;
+  file_path?: string;
+  file_size?: string;
 }
 
 interface User {
@@ -40,6 +47,11 @@ const AdminDashboard = () => {
     totalDepartments: 0
   });
   const [activeTab, setActiveTab] = useState("overview");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<Material | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", course: "", department: "", description: "" });
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -149,6 +161,60 @@ const AdminDashboard = () => {
       ...prev,
       totalDepartments: uniqueDepartments.length
     }));
+  };
+
+  const openEdit = (material: Material) => {
+    setEditing(material);
+    setEditForm({
+      title: material.title || "",
+      course: material.course || "",
+      department: material.department || "",
+      description: (material.description as string) || "",
+    });
+    setNewFile(null);
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const updates: any = {
+        title: editForm.title,
+        course: editForm.course,
+        department: editForm.department,
+        description: editForm.description,
+      };
+
+      if (newFile) {
+        const ext = newFile.name.split('.').pop()?.toLowerCase() || '';
+        const map: Record<string, string> = { pdf: 'PDF', ppt: 'PPT', pptx: 'PPT', doc: 'DOC', docx: 'DOC', mp4: 'VIDEO', mov: 'VIDEO', avi: 'VIDEO' };
+        const file_type = map[ext] || 'OTHER';
+        const sizeStr = newFile.size < 1024 * 1024
+          ? `${(newFile.size / 1024).toFixed(1)} KB`
+          : `${(newFile.size / 1024 / 1024).toFixed(2)} MB`;
+        const path = `${editing.id}/${Date.now()}_${newFile.name}`;
+        const { error: uploadError } = await supabase.storage.from('course-materials').upload(path, newFile);
+        if (uploadError) throw uploadError;
+        updates.file_path = path;
+        updates.file_type = file_type;
+        updates.file_size = sizeStr;
+      }
+
+      const { error: updateError } = await supabase
+        .from('materials')
+        .update(updates)
+        .eq('id', editing.id);
+      if (updateError) throw updateError;
+
+      await fetchData();
+      setEditOpen(false);
+    } catch (e) {
+      console.error('Failed to save edit', e);
+      alert('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleApproveMaterial = async (id: string) => {
@@ -400,6 +466,9 @@ const AdminDashboard = () => {
                                 <DropdownMenuItem>
                                   <Eye className="h-4 w-4 mr-2" /> View
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEdit(material)}>
+                                  <Pencil className="h-4 w-4 mr-2" /> Edit
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleApproveMaterial(material.id)}>
                                   <Check className="h-4 w-4 mr-2" /> Approve
                                 </DropdownMenuItem>
@@ -519,6 +588,44 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Material</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="course">Course</Label>
+                  <Input id="course" value={editForm.course} onChange={(e) => setEditForm({ ...editForm, course: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Input id="department" value={editForm.department} onChange={(e) => setEditForm({ ...editForm, department: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="file">Replace File (optional)</Label>
+                <input id="file" type="file" onChange={(e) => setNewFile(e.target.files?.[0] || null)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" /> {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

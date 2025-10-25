@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { Button } from "./ui/button";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
 
 interface MaterialsGridProps {
@@ -17,6 +18,8 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -27,6 +30,16 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
       fetchMaterials();
     }
   }, [user]);
+
+  // Reset to first page when search or school filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedSchool]);
+
+  // Reset to first page when search or school filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedSchool]);
 
   const fetchMaterials = async () => {
     try {
@@ -68,6 +81,11 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
 
     return matchesSearch && matchesSchool;
   });
+
+  const totalPages = Math.ceil(filteredMaterials.length / ITEMS_PER_PAGE) || 1;
+  const current = Math.min(currentPage, totalPages);
+  const startIdx = (current - 1) * ITEMS_PER_PAGE;
+  const paginatedMaterials = filteredMaterials.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   if (!user) {
     return (
@@ -143,12 +161,31 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
             aria-labelledby="materials-heading"
             aria-describedby="materials-count"
           >
-            {filteredMaterials.map((material) => (
+            {paginatedMaterials.map((material) => (
               <div key={material.id} role="listitem">
                 <MaterialCard material={material} />
               </div>
             ))}
           </div>
+        )}
+{totalPages > 1 && (
+          <Pagination className="mt-8">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious href="#" className={current === 1 ? "pointer-events-none opacity-50" : ""} onClick={(e) => { e.preventDefault(); if (current > 1) setCurrentPage(current - 1); }} />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink href="#" isActive={page === current} onClick={(e) => { e.preventDefault(); setCurrentPage(page); }}>
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext href="#" className={current === totalPages ? "pointer-events-none opacity-50" : ""} onClick={(e) => { e.preventDefault(); if (current < totalPages) setCurrentPage(current + 1); }} />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
       </div>
     </section>
