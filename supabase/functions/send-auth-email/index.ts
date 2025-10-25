@@ -181,12 +181,47 @@ const createEmailTemplate = (type: string, token: string, tokenHash: string, red
   return templates[type as keyof typeof templates] || templates.signup;
 };
 
+// Simple in-memory rate limiting (10 auth emails per IP per 10 minutes)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const limit = rateLimitMap.get(ip);
+  
+  if (!limit || now > limit.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 10 * 60 * 1000 });
+    return true;
+  }
+  
+  if (limit.count >= 10) {
+    return false;
+  }
+  
+  limit.count++;
+  return true;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting check
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    if (!checkRateLimit(clientIp)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({ error: "Too many authentication requests. Please try again later." }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
     const { email, type, token, token_hash, redirect_to }: AuthEmailRequest = await req.json();
 
     console.log(`Sending ${type} email to ${email}`);
