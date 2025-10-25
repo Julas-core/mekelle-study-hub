@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, User, FileText, Eye, X, AlertCircle } from "lucide-react";
+import { Upload, User, FileText, Eye, X, AlertCircle, MoreHorizontal, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Material {
@@ -271,16 +272,16 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-16">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
+        <h1 className="text-5xl font-extrabold tracking-tight mb-12 text-center">Admin Dashboard</h1>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="materials">Materials</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="overview" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-md">Overview</TabsTrigger>
+            <TabsTrigger value="materials" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-md">Materials</TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-md">Users</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-md">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -373,9 +374,9 @@ const AdminDashboard = () => {
                         <th className="text-left py-2">Title</th>
                         <th className="text-left py-2">Course</th>
                         <th className="text-left py-2">Department</th>
-                        <th className="text-left py-2">Uploader</th>
-                        <th className="text-left py-2">Status</th>
-                        <th className="text-left py-2">Actions</th>
+                        <th className="text-left py-2 text-sm text-muted-foreground">Uploader</th>
+                        <th className="text-left py-2 text-sm text-muted-foreground hidden md:table-cell">Status</th>
+                        <th className="text-left py-2 text-sm text-muted-foreground">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -384,18 +385,29 @@ const AdminDashboard = () => {
                           <td className="py-3">{material.title}</td>
                           <td className="py-3">{material.course}</td>
                           <td className="py-3">{material.department}</td>
-                          <td className="py-3">{material.uploaded_by}</td>
+                          <td className="py-3 text-sm text-muted-foreground">{material.uploaded_by}</td>
                           <td className="py-3">
-                            <Badge variant="default">Active</Badge>
+                            <Badge variant="outline" className="bg-muted text-muted-foreground">Active</Badge>
                           </td>
                           <td className="py-3">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="icon" variant="ghost" aria-label="Actions">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Eye className="h-4 w-4 mr-2" /> View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleApproveMaterial(material.id)}>
+                                  <Check className="h-4 w-4 mr-2" /> Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleRejectMaterial(material.id)}>
+                                  <X className="h-4 w-4 mr-2" /> Reject
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       ))}
@@ -447,11 +459,16 @@ const AdminDashboard = () => {
                           <td className="py-3">{userItem.full_name || 'N/A'}</td>
                           <td className="py-3">{userItem.email || 'N/A'}</td>
                           <td className="py-3">
-                            <Badge variant={userItem.is_admin ? 'default' : 'outline'}>
-                              {userItem.is_admin ? 'admin' : 'user'}
+                            <Badge 
+                              variant="outline"
+                              className={userItem.is_admin 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-gray-100 text-gray-700 border-gray-200'}
+                            >
+                              {userItem.is_admin ? 'Admin' : 'User'}
                             </Badge>
                           </td>
-                          <td className="py-3">{new Date(userItem.created_at).toLocaleDateString()}</td>
+                          <td className="py-3 text-sm text-muted-foreground">{new Date(userItem.created_at).toLocaleDateString()}</td>
                           <td className="py-3">
                             {userItem.id !== user?.id && !userItem.is_admin && (
                               <Button 

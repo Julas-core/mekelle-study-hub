@@ -21,7 +21,7 @@ export const DepartmentFilter = ({ selected, onSelect }: DepartmentFilterProps) 
 
   return (
     <section 
-      className="py-8 border-b bg-card" 
+      id="school-filter" className="py-12 border-b bg-card" 
       aria-label="School filter"
     >
       <div className="container px-4">
@@ -37,7 +37,7 @@ export const DepartmentFilter = ({ selected, onSelect }: DepartmentFilterProps) 
               variant={selected === department ? "default" : "outline"}
               onClick={() => onSelect(department)}
               onKeyDown={(e) => handleKeyDown(e, department)}
-              className="transition-all"
+              size="lg" className="transition-all rounded-full px-4"
               aria-pressed={selected === department}
               role="tab"
               tabIndex={0}

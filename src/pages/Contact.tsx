@@ -86,38 +86,10 @@ const Contact = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
-                  <div className="text-center space-y-4">
-                    <div className="font-['Dancing_Script'] text-5xl md:text-6xl text-primary font-bold leading-tight">
-                      Let's Connect
-                    </div>
-                    <div className="font-['Dancing_Script'] text-3xl md:text-4xl text-primary/70">
-                      We're here to help
-                    </div>
-                    <div className="flex justify-center gap-2 mt-6">
-                      <div className="h-1 w-12 bg-primary/40 rounded-full"></div>
-                      <div className="h-1 w-8 bg-primary/60 rounded-full"></div>
-                      <div className="h-1 w-4 bg-primary/80 rounded-full"></div>
-                    </div>
-                  </div>
-                </div>
+
                 
                 <div className="space-y-6">
-                  <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
-                    <div className="text-center space-y-4">
-                      <div className="font-['Dancing_Script'] text-5xl md:text-6xl text-primary font-bold leading-tight">
-                        Let's Connect
-                      </div>
-                      <div className="font-['Dancing_Script'] text-3xl md:text-4xl text-primary/70">
-                        We're here to help
-                      </div>
-                      <div className="flex justify-center gap-2 mt-6">
-                        <div className="h-1 w-12 bg-primary/40 rounded-full"></div>
-                        <div className="h-1 w-8 bg-primary/60 rounded-full"></div>
-                        <div className="h-1 w-4 bg-primary/80 rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>
+                  <h2 className="text-xl font-semibold">Contact Details</h2>
                   
                   <div className="flex items-start gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">

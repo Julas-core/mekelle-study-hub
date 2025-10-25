@@ -108,6 +108,14 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
         >
           {material.title}
         </CardTitle>
+        <div className="flex items-center gap-2 mt-1">
+          <Badge variant="outline" className="border-primary/20 text-primary">
+            {material.course}
+          </Badge>
+          <Badge variant="secondary">
+            {material.department}
+          </Badge>
+        </div>
         <CardDescription 
           className="line-clamp-2" 
           id={`material-description-${material.id}`}
@@ -117,15 +125,11 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-2 text-sm" aria-label="Material details">
-          <div className="flex items-center gap-2 text-muted-foreground" aria-label="Course">
-            <FileText className="h-4 w-4" aria-hidden="true" />
-            <span>{material.course}</span>
-          </div>
           <div className="flex items-center gap-2 text-muted-foreground" aria-label="Uploaded by">
             <User className="h-4 w-4" aria-hidden="true" />
             <span>{material.uploaded_by}</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground" aria-label="Upload date">
+          <div className="flex items-center gap-2 text-muted-foreground text-xs" aria-label="Upload date">
             <Calendar className="h-4 w-4" aria-hidden="true" />
             <span>{formatDate(material.created_at)}</span>
           </div>

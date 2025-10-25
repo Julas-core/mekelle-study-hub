@@ -2,13 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-16">
       <div className="container mx-auto px-4 max-w-4xl">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">About Mekelle University Course Materials Hub</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             <section>
               <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
               <p className="text-muted-foreground leading-relaxed">

@@ -43,8 +43,8 @@ export const Hero = ({ onSearch }: HeroProps) => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto" role="search">
-          <div className="flex gap-2 bg-card p-2 rounded-lg shadow-lg">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto" role="search">
+          <div className="flex gap-2 bg-card p-3 rounded-xl shadow-lg">
             <div className="relative flex-1">
               <Search 
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" 
@@ -54,12 +54,20 @@ export const Hero = ({ onSearch }: HeroProps) => {
                 type="text"
                 name="search"
                 placeholder="Search courses, materials, or topics..."
-                className="pl-10 border-0 bg-transparent focus-visible:ring-0 w-full"
+                className="pl-10 border-0 bg-transparent focus-visible:ring-0 w-full h-14 text-base"
                 aria-label="Search for course materials"
               />
             </div>
-            <Button type="submit" size="lg" className="bg-secondary hover:bg-secondary/90">
+            <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90 h-14 px-8">
               Search
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="h-14 px-5" 
+              onClick={() => document.getElementById('school-filter')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Advanced Filters
             </Button>
           </div>
         </form>
