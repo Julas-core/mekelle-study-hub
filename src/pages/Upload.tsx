@@ -166,23 +166,14 @@ const Upload = () => {
     setUploading(true);
 
     try {
-      // Check for duplicates using AI
-      const materialsWithDuplicates = [];
+      // Check for duplicates using AI before uploading
       for (const material of materials) {
-        const hasDuplicate = await checkForDuplicate(material);
-        if (hasDuplicate) {
-          materialsWithDuplicates.push(material);
-        }
-      }
-
-      // If duplicates are found, show user a message and ask for confirmation
-      if (materialsWithDuplicates.length > 0) {
-        const duplicateNames = materialsWithDuplicates.map(m => m.title).join(', ');
-        const shouldContinue = window.confirm(
-          `Duplicate materials detected: ${duplicateNames}. Are you sure you want to proceed with upload?`
-        );
-        
-        if (!shouldContinue) {
+        const shouldBlock = await checkForDuplicate(material);
+        if (shouldBlock) {
+          toast({
+            title: 'Upload Cancelled',
+            description: 'Duplicate material detected. Upload cancelled.',
+          });
           setUploading(false);
           return;
         }
@@ -249,32 +240,40 @@ const Upload = () => {
 
   const checkForDuplicate = async (material: MaterialMetadata): Promise<boolean> => {
     try {
-      // Use AI to determine if this material already exists in the database
-      // by comparing title, course, and department information
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-duplicate-material`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          title: material.title,
-          course: material.courseCode,
-          department: material.department,
-          school: material.school,
+      const response = await supabase.functions.invoke('check-duplicate-material', {
+        body: {
           fileName: material.file.name,
-          fileSize: material.file.size,
-        }),
+          fileType: getFileType(material.file.name),
+          courseName: material.courseCode,
+          department: material.department,
+          description: material.description,
+        },
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.isDuplicate || false;
+      if (response.error) {
+        console.error('Error checking duplicate:', response.error);
+        return false;
       }
+
+      const result = response.data;
+      
+      // If duplicate found with high or medium confidence, show details
+      if (result.isDuplicate && result.confidence !== 'low') {
+        const similarInfo = result.similarMaterials
+          .map((m: any) => `- ${m.title} (${m.course_name})`)
+          .join('\n');
+        
+        const shouldContinue = window.confirm(
+          `AI detected ${result.confidence} confidence duplicate:\n\n${result.reason}\n\nSimilar materials:\n${similarInfo}\n\nDo you want to upload anyway?`
+        );
+        
+        return !shouldContinue; // Return true to block upload if user says no
+      }
+      
       return false;
     } catch (error) {
       console.error('Error checking for duplicate:', error);
-      return false; // If there's an error, continue with the upload to be safe
+      return false;
     }
   };
 

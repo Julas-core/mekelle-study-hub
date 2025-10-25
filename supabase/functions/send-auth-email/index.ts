@@ -51,20 +51,37 @@ const createEmailTemplate = (type: string, token: string, tokenHash: string, red
                 <h1>MU Study Hub</h1>
               </div>
               <div class="content">
-                <h2>Verify Your Email</h2>
-                <p>Welcome to MU Study Hub! Please verify your email address to complete your registration and access all course materials.</p>
+                <h2>Welcome to MU Study Hub!</h2>
+                <p>Thank you for joining our academic community. Please verify your email address to complete your registration.</p>
+                
                 <p style="text-align: center;">
                   <a href="${verificationLink}" class="button">Verify Email Address</a>
                 </p>
+                
                 <p>Or use this verification code:</p>
                 <div class="code-box">
                   <div class="code">${token}</div>
                 </div>
+                
+                <div style="background: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                  <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px;">Help Build Our Academic Community</h3>
+                  <p style="margin: 0 0 12px 0; color: #555; line-height: 1.6;">We believe education should be accessible to all students. You can make a real difference by sharing your course materials, notes, and resources.</p>
+                  <p style="margin: 0 0 12px 0; color: #555; line-height: 1.6;"><strong>Why contribute?</strong></p>
+                  <ul style="margin: 0 0 12px 0; padding-left: 20px; color: #555;">
+                    <li style="margin-bottom: 8px;">Help fellow students access materials they need without waiting</li>
+                    <li style="margin-bottom: 8px;">Build a comprehensive library that benefits everyone</li>
+                    <li style="margin-bottom: 8px;">Share knowledge and contribute to academic excellence</li>
+                    <li style="margin-bottom: 8px;">Create a lasting resource for future generations of students</li>
+                  </ul>
+                  <p style="margin: 12px 0 0 0; color: #555; line-height: 1.6;">Every lecture note, textbook, assignment, or study guide you upload helps create an ecosystem where students can learn independently and efficiently. Don't let valuable educational materials sit unused on your device—share them today and be part of something bigger.</p>
+                </div>
+                
                 <p style="color: #999; font-size: 14px; margin-top: 30px;">If you didn't create an account with MU Study Hub, you can safely ignore this email.</p>
               </div>
               <div class="footer">
-                <p>MU Study Hub - Academic Material Distribution Platform</p>
-                <p style="margin-top: 10px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
+                <p><strong>MU Study Hub</strong></p>
+                <p style="margin-top: 5px; color: #888;">Mekelle University Academic Material Distribution Platform</p>
+                <p style="margin-top: 15px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
               </div>
             </div>
           </body>
@@ -106,8 +123,9 @@ const createEmailTemplate = (type: string, token: string, tokenHash: string, red
                 <p style="color: #999; font-size: 14px; margin-top: 30px;">This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.</p>
               </div>
               <div class="footer">
-                <p>MU Study Hub - Academic Material Distribution Platform</p>
-                <p style="margin-top: 10px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
+                <p><strong>MU Study Hub</strong></p>
+                <p style="margin-top: 5px; color: #888;">Mekelle University Academic Material Distribution Platform</p>
+                <p style="margin-top: 15px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
               </div>
             </div>
           </body>
@@ -149,8 +167,9 @@ const createEmailTemplate = (type: string, token: string, tokenHash: string, red
                 <p style="color: #999; font-size: 14px; margin-top: 30px;">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
               </div>
               <div class="footer">
-                <p>MU Study Hub - Academic Material Distribution Platform</p>
-                <p style="margin-top: 10px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
+                <p><strong>MU Study Hub</strong></p>
+                <p style="margin-top: 5px; color: #888;">Mekelle University Academic Material Distribution Platform</p>
+                <p style="margin-top: 15px;">Need help? Contact us at <a href="mailto:julasmame@gmail.com">julasmame@gmail.com</a></p>
               </div>
             </div>
           </body>
