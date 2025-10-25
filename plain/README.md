@@ -50,6 +50,22 @@ curl -X POST http://localhost:3001/send-email -H "Content-Type: application/json
 
 The server will forward the request to Resend using the `RESEND_API_KEY` from the environment and return the API response.
 
+Routes available in the plain scaffold
+- `/` — Home (index)
+- `/about` — About page
+- `/contact` — Contact form (posts to local demo server if available)
+- `/help` — Help / FAQ
+- `/terms` — Terms of service
+- `/privacy` — Privacy policy
+- `/auth` — Sign in
+- `/register` — Register page
+- `/profile` — User profile (requires sign-in)
+- `/upload` — Upload materials (requires sign-in)
+- `/admin` — Admin dashboard (requires profile.is_admin)
+- `/verify-email` — Email verification page (token via query string)
+
+Open these via the hash routes, e.g. `http://localhost:5173/plain/index.html#/upload`.
+
 Next steps / migration tips
 - Port one page at a time. Use `js/app.js` as the starting point and progressively replicate components.
 - Move server work (email sending, tokens, service_role actions) to serverless functions or an API; call them from this client scaffold.

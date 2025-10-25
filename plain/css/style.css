@@ -7,6 +7,7 @@ body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);col
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem}
 .logo{font-size:1.125rem;margin:0}
 .nav a{margin-left:1rem;color:var(--muted);text-decoration:none}
+.nav a.active{color:var(--accent);font-weight:600}
 .hero{padding:2rem 0;text-align:center}
 .hero h2{margin:0 0 0.25rem;font-size:1.75rem}
 .hero p{color:var(--muted);margin:0 0 1rem}
@@ -20,3 +21,17 @@ body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);col
 .card p{margin:0;color:var(--muted);font-size:0.9rem}
 .site-footer{padding:1.5rem 0;text-align:center;color:var(--muted);font-size:0.9rem;margin-top:2rem}
 @media (max-width:600px){.search-row input{width:100%}.header-inner{padding:0.5rem}}
+
+/* Page content helper */
+.content-block{background:var(--card);padding:1.25rem;border-radius:12px;border:1px solid #e6eef8}
+.content-block h1{margin-top:0}
+
+form input, form textarea, form select{width:100%;padding:0.5rem;border:1px solid #e6eef8;border-radius:6px}
+form button{padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px}
+
+.file-item{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px dashed #e6eef8;border-radius:8px}
+.file-item .meta{flex:1}
+.file-progress{height:8px;background:#e6eef8;border-radius:8px;overflow:hidden}
+.file-progress > i{display:block;height:100%;background:var(--accent);width:0%}
+
+.muted{color:var(--muted)}

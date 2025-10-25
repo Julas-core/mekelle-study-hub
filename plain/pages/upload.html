@@ -1,18 +1,12 @@
 <div class="content-block">
   <h1>Upload Course Material</h1>
-  <p>Authenticated users can upload files. This demo shows a client-side placeholder only.</p>
+  <p class="muted">Authenticated users can upload files. Fill metadata or generate it with AI, then upload.</p>
+
   <form id="uploadForm">
     <input id="files" name="files" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4" />
-    <div style="margin-top:8px;"><button>Upload (demo)</button></div>
+    <div id="filesList" style="margin-top:12px"></div>
+    <div style="margin-top:8px;"><button type="submit">Upload files</button></div>
   </form>
 </div>
 
-<script>
-const form = document.getElementById('uploadForm')
-form?.addEventListener('submit',(e)=>{
-  e.preventDefault()
-  const files = document.getElementById('files').files
-  if(!files || files.length===0){ alert('Select files first'); return }
-  alert(`Ready to upload ${files.length} file(s). This demo does not perform server upload.`)
-})
-</script>
+<!-- page behavior is initialized by the router which imports `plain/js/pages/upload.js` -->

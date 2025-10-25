@@ -32,6 +32,16 @@ async function loadRoute(path){
       // non-fatal
       // console.debug('No page module for', path)
     }
+    // update active nav link
+    try{
+      const navLinks = document.querySelectorAll('.nav a')
+      navLinks.forEach(a => {
+        const href = a.getAttribute('href') || ''
+        const linkPath = href.replace(/^#/, '') || '/'
+        if(linkPath === path) a.classList.add('active')
+        else a.classList.remove('active')
+      })
+    }catch(e){/* ignore */}
   }catch(e){
     console.error('Router fetch error', e)
     appEl.innerHTML = '<p style="color:#ef4444">Failed to load page</p>'
