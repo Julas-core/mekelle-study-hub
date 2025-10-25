@@ -22,8 +22,11 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMaterials();
-  }, []);
+    console.log('MaterialsGrid: user state changed', { user: !!user, userId: user?.id });
+    if (user) {
+      fetchMaterials();
+    }
+  }, [user]);
 
   const fetchMaterials = async () => {
     try {

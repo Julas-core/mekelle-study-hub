@@ -20,23 +20,9 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Check admin status using database
-        if (session?.user?.id) {
-          await checkAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
-    // Check for existing session
+    // Check for existing session FIRST
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id });
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user?.id) {
@@ -44,6 +30,24 @@ export const useAuth = () => {
       }
       setLoading(false);
     });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, { hasSession: !!session, userId: session?.user?.id });
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check admin status using database
+        if (session?.user?.id) {
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
