@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut, Upload, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 // Use Vite-compatible URL import for static asset (SVG) to avoid runtime import issues
 const StudyHubLogo = new URL('../assets/StudyHubLogo.png', import.meta.url).href;
 
@@ -11,9 +12,24 @@ export type HeaderProps = {
 
 const Header = ({ avatarUrl }: HeaderProps) => {
   const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "You have been signed out.",
+      });
+      navigate("/");
+    }
   };
 
   return (
