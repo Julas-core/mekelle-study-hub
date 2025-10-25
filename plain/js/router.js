@@ -25,6 +25,13 @@ async function loadRoute(path){
     }
     const html = await res.text()
     appEl.innerHTML = html
+    // Try to run page-specific module: e.g. for "/profile" import ./pages/profile.js
+    try{
+      await runPageModule(path)
+    }catch(err){
+      // non-fatal
+      // console.debug('No page module for', path)
+    }
   }catch(e){
     console.error('Router fetch error', e)
     appEl.innerHTML = '<p style="color:#ef4444">Failed to load page</p>'
@@ -47,3 +54,18 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const path = parseHash()
   loadRoute(path)
 })
+
+async function runPageModule(path){
+  // normalize root
+  const normalized = path === '/' ? '/index' : path
+  const modulePath = `./pages${normalized}.js`
+  try{
+    const mod = await import(modulePath)
+    if(mod && typeof mod.init === 'function'){
+      await mod.init()
+    }
+  }catch(err){
+    // ignore missing module
+    // console.debug('runPageModule', modulePath, err.message)
+  }
+}
