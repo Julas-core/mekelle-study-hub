@@ -8,40 +8,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkIsAdminEmail = (email: string | undefined): boolean => {
-    const adminEmails = ['codingjulas@gmail.com', 'julasmame@gmail.com'];
-    return email ? adminEmails.includes(email) : false;
-  };
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Check admin status using email
-        if (session?.user?.email) {
-          setIsAdmin(checkIsAdminEmail(session.user.email));
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user?.email) {
-        setIsAdmin(checkIsAdminEmail(session.user.email));
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const checkAdminStatus = async (userId: string) => {
     const { data } = await supabase
       .from('user_roles')
@@ -52,6 +18,39 @@ export const useAuth = () => {
     
     setIsAdmin(!!data);
   };
+
+  useEffect(() => {
+    // Check for existing session FIRST
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id });
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user?.id) {
+        await checkAdminStatus(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, { hasSession: !!session, userId: session?.user?.id });
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check admin status using database
+        if (session?.user?.id) {
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -79,6 +78,11 @@ export const useAuth = () => {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+    }
     return { error };
   };
 

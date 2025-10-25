@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Phone, MapPin, GraduationCap } from "lucide-react";
+import { Mail, MapPin, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -86,19 +86,36 @@ const Contact = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <h2 className="text-2xl font-semibold">Get in Touch</h2>
-                <p className="text-muted-foreground">
-                  Reach out to us for support, inquiries, or feedback about the Course Materials Hub.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <GraduationCap className="h-5 w-5 text-primary" />
+                <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
+                  <div className="text-center space-y-4">
+                    <div className="font-['Dancing_Script'] text-5xl md:text-6xl text-primary font-bold leading-tight">
+                      Let's Connect
                     </div>
-                    <div>
-                      <h3 className="font-medium">Academic Support</h3>
-                      <p className="text-muted-foreground text-sm">Questions about course materials</p>
+                    <div className="font-['Dancing_Script'] text-3xl md:text-4xl text-primary/70">
+                      We're here to help
+                    </div>
+                    <div className="flex justify-center gap-2 mt-6">
+                      <div className="h-1 w-12 bg-primary/40 rounded-full"></div>
+                      <div className="h-1 w-8 bg-primary/60 rounded-full"></div>
+                      <div className="h-1 w-4 bg-primary/80 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 border border-primary/20">
+                    <div className="text-center space-y-4">
+                      <div className="font-['Dancing_Script'] text-5xl md:text-6xl text-primary font-bold leading-tight">
+                        Let's Connect
+                      </div>
+                      <div className="font-['Dancing_Script'] text-3xl md:text-4xl text-primary/70">
+                        We're here to help
+                      </div>
+                      <div className="flex justify-center gap-2 mt-6">
+                        <div className="h-1 w-12 bg-primary/40 rounded-full"></div>
+                        <div className="h-1 w-8 bg-primary/60 rounded-full"></div>
+                        <div className="h-1 w-4 bg-primary/80 rounded-full"></div>
+                      </div>
                     </div>
                   </div>
                   
@@ -109,16 +126,6 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium">Email</h3>
                       <p className="text-muted-foreground text-sm">support@mekelleuniversity.edu.et</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <Phone className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Phone</h3>
-                      <p className="text-muted-foreground text-sm">+251-XX-XXX-XXXX</p>
                     </div>
                   </div>
                   

@@ -22,8 +22,11 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMaterials();
-  }, []);
+    console.log('MaterialsGrid: user state changed', { user: !!user, userId: user?.id });
+    if (user) {
+      fetchMaterials();
+    }
+  }, [user]);
 
   const fetchMaterials = async () => {
     try {
@@ -60,7 +63,7 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     }
 
     // Check if the material's department belongs to the selected school
-    const departmentsInSchool = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
+    const departmentsInSchool: readonly string[] = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
     const matchesSchool = departmentsInSchool.includes(material.department);
 
     return matchesSearch && matchesSchool;
