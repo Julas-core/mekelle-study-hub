@@ -60,7 +60,7 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     }
 
     // Check if the material's department belongs to the selected school
-    const departmentsInSchool = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
+    const departmentsInSchool: readonly string[] = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
     const matchesSchool = departmentsInSchool.includes(material.department);
 
     return matchesSearch && matchesSchool;
