@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AnalyticsWrapper from "./components/AnalyticsWrapper";
+import CookieConsent from "./components/CookieConsent";
 import { Footer } from "./components/Footer";
 import Header from "./components/Header";
 import { supabase } from "@/integrations/supabase/client";
@@ -105,6 +106,7 @@ function App() {
                     </Routes>
                   </main>
                   <Footer />
+                  <CookieConsent />
                 </div>
               </AnalyticsWrapper>
             </ErrorBoundary>
