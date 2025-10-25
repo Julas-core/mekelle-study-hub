@@ -1,0 +1,28 @@
+<div class="content-block">
+  <h1>Sign In / Sign Up</h1>
+  <form id="authForm">
+    <input name="email" type="email" placeholder="you@example.com" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <div style="margin-top:8px;"><button type="submit">Sign In</button></div>
+  </form>
+  <p style="margin-top:8px;">Don't have an account? <a href="#/register">Register</a></p>
+</div>
+
+<script type="module">
+import { supabase } from '../js/supabase-client.js'
+const form = document.getElementById('authForm')
+form?.addEventListener('submit', async (e)=>{
+  e.preventDefault()
+  const fd = new FormData(form)
+  const { email, password } = Object.fromEntries(fd.entries())
+  try{
+    if(!supabase) throw new Error('Supabase not configured')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if(error) throw error
+    alert('Signed in — reload or navigate to profile')
+    location.hash = '#/profile'
+  }catch(err){
+    alert('Sign in failed: ' + (err.message || err))
+  }
+})
+</script>

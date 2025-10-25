@@ -1,0 +1,30 @@
+<div class="content-block">
+  <h1>Create a new account</h1>
+  <form id="registerForm">
+    <input name="email" type="email" placeholder="you@example.com" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <input name="fullName" placeholder="Full name" required />
+    <input name="department" placeholder="Department" required />
+    <div style="margin-top:8px;"><button type="submit">Register</button></div>
+  </form>
+  <p style="margin-top:8px;">Already have an account? <a href="#/auth">Sign in</a></p>
+</div>
+
+<script type="module">
+import { supabase } from '../js/supabase-client.js'
+const form = document.getElementById('registerForm')
+form?.addEventListener('submit', async (e)=>{
+  e.preventDefault()
+  const fd = new FormData(form)
+  const { email, password, fullName, department } = Object.fromEntries(fd.entries())
+  try{
+    if(!supabase) throw new Error('Supabase not configured')
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, department } } })
+    if(error) throw error
+    alert('Registration initiated. Check your email for verification link.')
+    location.hash = '#/auth'
+  }catch(err){
+    alert('Register failed: ' + (err.message || err))
+  }
+})
+</script>
