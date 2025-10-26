@@ -21,6 +21,7 @@ interface Material {
   department: string;
   course: string;
   uploaded_by: string;
+  uploaded_by_user_id?: string | null;
   created_at: string;
   description?: string | null;
   file_type?: string;
@@ -354,6 +355,13 @@ const AdminDashboard = () => {
     }
   };
 
+  const getUploaderLabel = (material: Material) => {
+    const uploader = users.find(u => u.id === (material.uploaded_by_user_id || material.uploaded_by));
+    if (uploader) return uploader.is_admin ? 'Admin' : (uploader.full_name || uploader.email || 'Unknown');
+    // Fall back to the raw uploaded_by field
+    return material.uploaded_by || 'Unknown';
+  };
+
   const sendAdminNotificationEmail = async (email: string) => {
     try {
       // In a real implementation, this would call a backend function to send an email
@@ -498,6 +506,7 @@ const AdminDashboard = () => {
                         <p className="text-sm text-muted-foreground">
                           {material.course} • {material.department}
                         </p>
+                        <p className="text-sm text-muted-foreground mt-1">Uploaded by: {getUploaderLabel(material)}</p>
                       </div>
                       <Badge variant="default">
                         Active
@@ -533,7 +542,7 @@ const AdminDashboard = () => {
                           <td className="py-3">{material.title}</td>
                           <td className="py-3">{material.course}</td>
                           <td className="py-3">{material.department}</td>
-                          <td className="py-3 text-sm text-muted-foreground">{material.uploaded_by}</td>
+                          <td className="py-3 text-sm text-muted-foreground">{getUploaderLabel(material)}</td>
                           <td className="py-3">
                             <Badge variant="outline" className="bg-muted text-muted-foreground">Active</Badge>
                           </td>
