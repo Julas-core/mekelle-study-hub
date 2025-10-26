@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { FileText, Download, Calendar, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export interface Material {
   file_path: string;
   file_size: string;
   uploaded_by: string;
+  uploaded_by_user_id?: string | null;
   created_at: string;
 }
 
@@ -33,6 +35,61 @@ const typeColors = {
 
 export const MaterialCard = ({ material }: MaterialCardProps) => {
   const { toast } = useToast();
+  const [uploaderLabel, setUploaderLabel] = useState<string>(material.uploaded_by || 'Unknown');
+
+  // Simple in-memory cache for resolved uploader labels to avoid repeated DB calls
+  const uploaderCache = (MaterialCard as any)._uploaderCache || new Map<string, string>();
+  (MaterialCard as any)._uploaderCache = uploaderCache;
+
+  useEffect(() => {
+    let mounted = true;
+    const resolveLabel = async () => {
+      const userId = (material as any).uploaded_by_user_id;
+      if (!userId) {
+        setUploaderLabel(material.uploaded_by || 'Unknown');
+        return;
+      }
+
+        if (uploaderCache.has(userId)) {
+          if (!mounted) return;
+          setUploaderLabel(uploaderCache.get(userId) as string);
+          return;
+        }
+
+      try {
+        // Check role first
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!roleError && roleData && roleData.role === 'admin') {
+          uploaderCache.set(userId, 'Admin');
+          if (mounted) setUploaderLabel('Admin');
+          return;
+        }
+
+        // Not admin - fetch profile name/email
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', userId)
+          .maybeSingle();
+
+        const label = profileData?.full_name || profileData?.email || material.uploaded_by || 'Unknown';
+        uploaderCache.set(userId, label);
+        if (mounted) setUploaderLabel(label);
+      } catch (e) {
+        // fallback
+        uploaderCache.set(userId, material.uploaded_by || 'Unknown');
+        if (mounted) setUploaderLabel(material.uploaded_by || 'Unknown');
+      }
+    };
+
+    resolveLabel();
+    return () => { mounted = false; };
+  }, [material]);
 
   const handleDownload = async () => {
     try {
@@ -127,7 +184,7 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
         <div className="space-y-2 text-sm" aria-label="Material details">
           <div className="flex items-center gap-2 text-muted-foreground" aria-label="Uploaded by">
             <User className="h-4 w-4" aria-hidden="true" />
-            <span>{material.uploaded_by}</span>
+            <span>{uploaderLabel}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground text-xs" aria-label="Upload date">
             <Calendar className="h-4 w-4" aria-hidden="true" />
