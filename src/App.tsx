@@ -26,6 +26,8 @@ import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import RegisterPage from "./pages/RegisterPage";
+import Dashboard from "./pages/Dashboard";
+import StudyGroups from "./pages/StudyGroups";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +128,8 @@ function App() {
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/study-groups" element={<StudyGroups />} />
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

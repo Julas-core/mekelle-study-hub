@@ -47,6 +47,16 @@ const Header = ({ avatarUrl }: HeaderProps) => {
           <Link to="/" className="transition-colors hover:text-primary">
             Home
           </Link>
+          {user && (
+            <>
+              <Link to="/dashboard" className="transition-colors hover:text-primary">
+                Dashboard
+              </Link>
+              <Link to="/study-groups" className="transition-colors hover:text-primary">
+                Study Groups
+              </Link>
+            </>
+          )}
           <Link to="/about" className="transition-colors hover:text-primary">
             About
           </Link>
