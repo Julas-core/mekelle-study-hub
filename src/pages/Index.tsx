@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Hero } from "@/components/Hero";
 import { DepartmentFilter } from "@/components/DepartmentFilter";
-import { MaterialsGrid } from "@/components/MaterialsGrid";
+import { CourseTabs } from "@/components/CourseTabs";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,7 +14,7 @@ const Index = () => {
         selected={selectedSchool} 
         onSelect={setSelectedSchool} 
       />
-      <MaterialsGrid 
+      <CourseTabs 
         searchQuery={searchQuery}
         selectedSchool={selectedSchool}
       />
