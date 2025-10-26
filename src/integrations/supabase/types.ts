@@ -14,12 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
           course: string
           created_at: string | null
           department: string
           description: string | null
+          download_count: number
           file_path: string
           file_size: string
           file_type: string
@@ -33,6 +63,7 @@ export type Database = {
           created_at?: string | null
           department: string
           description?: string | null
+          download_count?: number
           file_path: string
           file_size: string
           file_type: string
@@ -46,6 +77,7 @@ export type Database = {
           created_at?: string | null
           department?: string
           description?: string | null
+          download_count?: number
           file_path?: string
           file_size?: string
           file_type?: string
@@ -53,6 +85,33 @@ export type Database = {
           title?: string
           uploaded_by?: string
           uploaded_by_user_id?: string
+        }
+        Relationships: []
+      }
+      point_transactions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          points: number
+          reference_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          points: number
+          reference_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          points?: number
+          reference_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -89,6 +148,91 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recently_viewed: {
+        Row: {
+          id: string
+          material_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          material_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          material_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_viewed_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_points: {
+        Row: {
+          created_at: string
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -115,12 +259,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_points: {
+        Args: {
+          p_action_type: string
+          p_points: number
+          p_reference_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_download_count: {
+        Args: { p_material_id: string }
+        Returns: undefined
       }
       is_admin_email:
         | { Args: { email: string }; Returns: boolean }

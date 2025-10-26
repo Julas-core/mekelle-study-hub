@@ -189,6 +189,7 @@ const Upload = () => {
       const uploadedBy = profile?.full_name || user.email || 'Unknown';
       
       // Upload all materials
+      let uploadedCount = 0;
       for (const material of materials) {
         // Upload file to storage
         const filePath = `${material.school}/${material.department}/${material.courseCode}/${Date.now()}_${material.file.name}`;
@@ -217,11 +218,19 @@ const Upload = () => {
         
         // Track the upload event
         trackUpload(material.title);
+        uploadedCount++;
       }
+
+      // Award points for uploads (50 points per upload)
+      await supabase.rpc('award_points', {
+        p_user_id: user.id,
+        p_points: uploadedCount * 50,
+        p_action_type: 'upload',
+      });
 
       toast({
         title: 'Success!',
-        description: `${materials.length} material(s) uploaded successfully.`,
+        description: `${materials.length} material(s) uploaded successfully. +${uploadedCount * 50} points!`,
       });
 
       // Reset form

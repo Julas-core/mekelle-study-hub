@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Upload, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { UserPointsBadge } from "./UserPointsBadge";
 // Use Vite-compatible URL import for static asset (SVG) to avoid runtime import issues
 const StudyHubLogo = new URL('../assets/StudyHubLogo.png', import.meta.url).href;
 
@@ -61,6 +62,8 @@ const Header = ({ avatarUrl }: HeaderProps) => {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              <UserPointsBadge userId={user.id} />
+              
               <Link to="/profile">
                 <button
                   className="inline-flex items-center justify-center rounded-md h-10 w-10 overflow-hidden hover:opacity-80 transition-opacity"

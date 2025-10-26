@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Download, Calendar, User } from "lucide-react";
+import { FileText, Download, Calendar, User, Bookmark, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { trackDownload } from "@/hooks/useAnalytics";
+import { useAuth } from "@/hooks/useAuth";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { useRatings } from "@/hooks/useRatings";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { StarRating } from "./StarRating";
+import { cn } from "@/lib/utils";
 
 export interface Material {
   id: string;
@@ -19,6 +25,7 @@ export interface Material {
   uploaded_by: string;
   uploaded_by_user_id?: string | null;
   created_at: string;
+  download_count?: number;
 }
 
 interface MaterialCardProps {
@@ -35,7 +42,15 @@ const typeColors = {
 
 export const MaterialCard = ({ material }: MaterialCardProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [uploaderLabel, setUploaderLabel] = useState<string>(material.uploaded_by || 'Unknown');
+  
+  // Phase 1 features
+  const { bookmarks, toggleBookmark } = useBookmarks(user?.id);
+  const { stats, userRating, submitRating } = useRatings(material.id, user?.id);
+  useRecentlyViewed(material.id, user?.id);
+  
+  const isBookmarked = bookmarks.has(material.id);
 
   // Simple in-memory cache for resolved uploader labels to avoid repeated DB calls
   const uploaderCache = (MaterialCard as any)._uploaderCache || new Map<string, string>();
@@ -108,12 +123,37 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
+      // Increment download count
+      await supabase.rpc('increment_download_count', {
+        p_material_id: material.id
+      });
+
+      // Award points to downloader (2 points)
+      if (user?.id) {
+        await supabase.rpc('award_points', {
+          p_user_id: user.id,
+          p_points: 2,
+          p_action_type: 'download',
+          p_reference_id: material.id,
+        });
+      }
+
+      // Award points to uploader (10 points)
+      if (material.uploaded_by_user_id) {
+        await supabase.rpc('award_points', {
+          p_user_id: material.uploaded_by_user_id,
+          p_points: 10,
+          p_action_type: 'material_downloaded',
+          p_reference_id: material.id,
+        });
+      }
+
       toast({
         title: 'Download started',
-        description: 'Your file is downloading...',
+        description: user?.id ? 'Your file is downloading... +2 points' : 'Your file is downloading...',
       });
       
-      trackDownload(material.title, material.file_type); // Track download event
+      trackDownload(material.title, material.file_type);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -149,15 +189,29 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <Badge 
-            className={typeColors[material.file_type as keyof typeof typeColors] || typeColors.OTHER}
-            aria-label={`File type: ${material.file_type}`}
+          <div className="flex items-center gap-2">
+            <Badge 
+              className={typeColors[material.file_type as keyof typeof typeColors] || typeColors.OTHER}
+              aria-label={`File type: ${material.file_type}`}
+            >
+              {material.file_type}
+            </Badge>
+            <span className="text-xs text-muted-foreground" id={`material-size-${material.id}`}>
+              {material.file_size}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBookmark(material.id);
+            }}
+            className={cn("h-8 w-8 p-0", isBookmarked && "text-primary")}
+            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
           >
-            {material.file_type}
-          </Badge>
-          <span className="text-xs text-muted-foreground" id={`material-size-${material.id}`}>
-            {material.file_size}
-          </span>
+            <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
+          </Button>
         </div>
         <CardTitle 
           className="text-xl group-hover:text-primary transition-colors" 
@@ -181,7 +235,39 @@ export const MaterialCard = ({ material }: MaterialCardProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 text-sm" aria-label="Material details">
+        <div className="space-y-3 text-sm" aria-label="Material details">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <span className="text-xs text-muted-foreground">
+                  {material.download_count || 0} downloads
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <StarRating rating={stats.averageRating} size={16} />
+              <span className="text-xs text-muted-foreground">
+                {stats.averageRating > 0 ? `${stats.averageRating.toFixed(1)} (${stats.totalRatings})` : 'No ratings yet'}
+              </span>
+            </div>
+            {user && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">Rate:</span>
+                <StarRating
+                  rating={userRating || 0}
+                  size={18}
+                  interactive
+                  onRatingChange={submitRating}
+                  userRating={userRating}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center gap-2 text-muted-foreground" aria-label="Uploaded by">
             <User className="h-4 w-4" aria-hidden="true" />
             <span>{uploaderLabel}</span>

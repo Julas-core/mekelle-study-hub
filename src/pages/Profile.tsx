@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User as UserIcon } from "lucide-react";
+import { UserPointsBadge } from "@/components/UserPointsBadge";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -298,12 +299,22 @@ const Profile = () => {
               </div>
             </form>
 
-            <div className="border-t mt-6 pt-6">
-              <h3 className="text-lg font-semibold mb-4">Account Information</h3>
-              <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Account Created:</span> {new Date(user.created_at).toLocaleDateString()}</p>
-                <p><span className="font-medium">User ID:</span> {user.id}</p>
-                <p><span className="font-medium">Status:</span> Active</p>
+            <div className="border-t mt-6 pt-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Your Points</h3>
+                <UserPointsBadge userId={user.id} variant="large" />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Earn points by uploading materials, downloading, and rating content!
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Account Created:</span> {new Date(user.created_at).toLocaleDateString()}</p>
+                  <p><span className="font-medium">User ID:</span> {user.id}</p>
+                  <p><span className="font-medium">Status:</span> Active</p>
+                </div>
               </div>
             </div>
           </CardContent>
