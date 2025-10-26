@@ -13,9 +13,10 @@ import { getFreshmanMaterials } from "@/utils/courseClassification";
 interface MaterialsGridProps {
   searchQuery: string;
   selectedSchool: string;
+  selectedDepartment?: string;
 }
 
-export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProps) => {
+export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment = "" }: MaterialsGridProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,15 +33,10 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     }
   }, [user]);
 
-  // Reset to first page when search or school filter changes
+  // Reset to first page when search, school, or department filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedSchool]);
-
-  // Reset to first page when search or school filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedSchool]);
+  }, [searchQuery, selectedSchool, selectedDepartment]);
 
   const fetchMaterials = async () => {
     try {
@@ -73,6 +69,10 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     
     // If "All Schools" is selected, show all materials
     if (selectedSchool === "All Schools") {
+      // If a specific department is selected, filter by that department
+      if (selectedDepartment) {
+        return matchesSearch && material.department === selectedDepartment;
+      }
       return matchesSearch;
     }
     
@@ -85,6 +85,12 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     // Check if the material's department belongs to the selected school
     const departmentsInSchool: readonly string[] = MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || [];
     const matchesSchool = departmentsInSchool.includes(material.department);
+
+    // If both school and department are selected, apply both filters
+    if (selectedDepartment) {
+      const matchesDepartment = material.department === selectedDepartment;
+      return matchesSearch && matchesSchool && matchesDepartment;
+    }
 
     return matchesSearch && matchesSchool;
   });
