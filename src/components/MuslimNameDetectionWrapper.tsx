@@ -34,6 +34,15 @@ const MuslimNameDetectionWrapper = () => {
       
       // Check existing user's name
       if (user) {
+        // Check if we've already shown the popup for this user
+        const popupShownKey = `muslim_popup_shown_${user.id}`;
+        const hasPopupBeenShown = localStorage.getItem(popupShownKey);
+        
+        if (hasPopupBeenShown) {
+          // Popup was already shown, don't show again
+          return;
+        }
+        
         // Get user's full name from user metadata or profile
         let fullName = user.user_metadata?.full_name;
         
@@ -67,10 +76,20 @@ const MuslimNameDetectionWrapper = () => {
   const handleJoinTelegram = () => {
     // Open the Telegram group in a new tab/window
     window.open('https://t.me/muslim_student_group', '_blank', 'noopener,noreferrer');
+    // Mark that the popup has been shown for this user
+    if (user) {
+      const popupShownKey = `muslim_popup_shown_${user.id}`;
+      localStorage.setItem(popupShownKey, 'true');
+    }
     setShowMuslimPopup(false);
   };
 
   const handleClosePopup = () => {
+    // Mark that the popup has been shown for this user (even if they decline)
+    if (user) {
+      const popupShownKey = `muslim_popup_shown_${user.id}`;
+      localStorage.setItem(popupShownKey, 'true');
+    }
     setShowMuslimPopup(false);
   };
 
