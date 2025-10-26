@@ -1,51 +1,97 @@
 import { Button } from "@/components/ui/button";
 import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const schools = [
+const filterOptions = [
   "All Schools",
+  "Freshman Courses", // Add Freshman Courses as a filter option
   ...Object.keys(MEKELLE_UNIVERSITY_SCHOOLS)
 ];
 
 interface DepartmentFilterProps {
-  selected: string;
-  onSelect: (department: string) => void;
+  selectedSchool: string;
+  selectedDepartment: string;
+  onSchoolSelect: (school: string) => void;
+  onDepartmentSelect: (department: string) => void;
 }
 
-export const DepartmentFilter = ({ selected, onSelect }: DepartmentFilterProps) => {
-  const handleKeyDown = (e: React.KeyboardEvent, department: string) => {
+export const DepartmentFilter = ({ 
+  selectedSchool, 
+  selectedDepartment, 
+  onSchoolSelect, 
+  onDepartmentSelect 
+}: DepartmentFilterProps) => {
+  const handleKeyDown = (e: React.KeyboardEvent, school: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onSelect(department);
+      onSchoolSelect(school);
     }
   };
+
+  // Get available departments based on selected school
+  const departments = selectedSchool !== "All Schools" && selectedSchool !== "Freshman Courses"
+    ? MEKELLE_UNIVERSITY_SCHOOLS[selectedSchool as keyof typeof MEKELLE_UNIVERSITY_SCHOOLS] || []
+    : [];
 
   return (
     <section 
       id="school-filter" className="py-12 border-b bg-card" 
-      aria-label="School filter"
+      aria-label="School and department filter"
     >
       <div className="container px-4">
-        <h2 className="text-2xl font-semibold mb-4 text-foreground">Browse by School</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-foreground">Browse Materials</h2>
+        
+        {/* School Filter */}
         <div 
-          className="flex flex-wrap gap-2"
+          className="flex flex-wrap gap-2 mb-6"
           role="group"
           aria-label="School selection"
         >
-          {schools.map((department) => (
+          {filterOptions.map((school) => (
             <Button
-              key={department}
-              variant={selected === department ? "default" : "outline"}
-              onClick={() => onSelect(department)}
-              onKeyDown={(e) => handleKeyDown(e, department)}
-              size="lg" className="transition-all rounded-full px-4"
-              aria-pressed={selected === department}
+              key={school}
+              variant={selectedSchool === school ? "default" : "outline"}
+              onClick={() => {
+                onSchoolSelect(school);
+                // When school changes, reset department selection
+                onDepartmentSelect("");
+              }}
+              onKeyDown={(e) => handleKeyDown(e, school)}
+              size="lg" 
+              className="transition-all rounded-full px-4"
+              aria-pressed={selectedSchool === school}
               role="tab"
               tabIndex={0}
             >
-              {department}
+              {school}
             </Button>
           ))}
         </div>
+        
+        {/* Department Filter - Only shown when a specific school is selected */}
+        {selectedSchool !== "All Schools" && selectedSchool !== "Freshman Courses" && departments.length > 0 && (
+          <div className="mb-4">
+            <label htmlFor="department-select" className="block text-lg font-medium mb-2 text-foreground">
+              Filter by Department
+            </label>
+            <Select 
+              value={selectedDepartment} 
+              onValueChange={onDepartmentSelect}
+            >
+              <SelectTrigger id="department-select" className="w-full max-w-xs">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Departments</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
     </section>
   );

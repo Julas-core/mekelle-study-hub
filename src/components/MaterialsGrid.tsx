@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock, GraduationCap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
+import { getFreshmanMaterials } from "@/utils/courseClassification";
 
 interface MaterialsGridProps {
   searchQuery: string;
@@ -73,6 +74,12 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     // If "All Schools" is selected, show all materials
     if (selectedSchool === "All Schools") {
       return matchesSearch;
+    }
+    
+    // If "Freshman Courses" is selected, show only freshman materials
+    if (selectedSchool === "Freshman Courses") {
+      const isFreshman = getFreshmanMaterials([material]).length > 0;
+      return matchesSearch && isFreshman;
     }
 
     // Check if the material's department belongs to the selected school
@@ -141,9 +148,14 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool }: MaterialsGridProp
     <section className="py-12 bg-background" aria-label="Available course materials">
       <div className="container px-4">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-foreground" id="materials-heading">
-            Available Materials
-          </h2>
+          <div className="flex items-center gap-3">
+            {selectedSchool === "Freshman Courses" ? (
+              <GraduationCap className="h-8 w-8 text-primary" />
+            ) : null}
+            <h2 className="text-3xl font-bold text-foreground" id="materials-heading">
+              {selectedSchool === "Freshman Courses" ? "Freshman Courses" : "Available Materials"}
+            </h2>
+          </div>
           <p className="text-muted-foreground" id="materials-count">
             {filteredMaterials.length} {filteredMaterials.length === 1 ? 'material' : 'materials'} found
           </p>

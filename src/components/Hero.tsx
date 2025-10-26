@@ -39,7 +39,7 @@ export const Hero = ({ onSearch }: HeroProps) => {
                 By Students, for Students
             </p>
             <p className="text-lg text-primary-foreground/80">
-                Make Studying Easier For Everyone.
+                Making Studying Easier For Everyone.
             </p>
         </div>
 
