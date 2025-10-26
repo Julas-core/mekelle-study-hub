@@ -38,10 +38,6 @@ export const MEKELLE_UNIVERSITY_SCHOOLS = {
   "Software Engineering",
   "Information Systems",
   "Data Science",
-  "Artificial Intelligence",
-  "Cybersecurity",
-  "Information Technology",
-  "IT",
 ],
   "School of Health Sciences": [
     "Medicine",
