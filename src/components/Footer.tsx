@@ -36,7 +36,7 @@ export const Footer = () => {
           {/* Departments section removed per request */}
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-semibold mb-4">Contact me</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
@@ -59,7 +59,7 @@ export const Footer = () => {
                   className="hover:text-primary transition-colors"
                   aria-label="Mekelle University on GitHub (opens in a new tab)"
                 >
-                  If you liked to contribute, you can here.
+                  Contiribute.
                 </a>
               </li>
             </ul>
