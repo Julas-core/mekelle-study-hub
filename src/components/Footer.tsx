@@ -46,10 +46,10 @@ export const Footer = () => {
                 <Phone className="h-4 w-4" aria-hidden="true" />
                 <span>+251-93-639-3952</span>
               </li>
-              <li className="flex items-center gap-2 text-muted-foreground">
+              {/* <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 <span>julasmame@gmail.com</span>
-              </li>
+              </li> */}
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Github className="h-4 w-4" aria-hidden="true" />
                 <a 
@@ -59,7 +59,7 @@ export const Footer = () => {
                   className="hover:text-primary transition-colors"
                   aria-label="Mekelle University on GitHub (opens in a new tab)"
                 >
-                  GitHub
+                  If you liked to contribute, you can here.
                 </a>
               </li>
             </ul>
@@ -67,7 +67,7 @@ export const Footer = () => {
         </div>
         
         <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Mekelle University Course Materials Hub. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} MUStudy-Hub. All rights reserved.</p>
         </div>
       </div>
     </footer>

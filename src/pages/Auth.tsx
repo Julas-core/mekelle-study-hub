@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { isMuslimName } from '@/utils/muslimNames';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -45,6 +46,15 @@ const Auth = () => {
           title: 'Check your email!',
           description: 'We sent you a verification link. Please verify your email to continue.',
         });
+        
+        // Check if the full name is a Muslim name and store this info temporarily
+        if (fullName && isMuslimName(fullName)) {
+          // Store this information temporarily so the detection wrapper can use it
+          localStorage.setItem('newUserWithMuslimName', JSON.stringify({
+            fullName: fullName,
+            timestamp: Date.now()
+          }));
+        }
       }
     } catch (error: any) {
       toast({

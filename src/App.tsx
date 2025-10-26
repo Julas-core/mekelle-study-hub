@@ -10,6 +10,7 @@ import CookieConsent from "./components/CookieConsent";
 import { Footer } from "./components/Footer";
 import Header from "./components/Header";
 import { supabase } from "@/integrations/supabase/client";
+import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
@@ -107,6 +108,7 @@ function App() {
                   </main>
                   <Footer />
                   <CookieConsent />
+                  <MuslimNameDetectionWrapper />
                 </div>
               </AnalyticsWrapper>
             </ErrorBoundary>
