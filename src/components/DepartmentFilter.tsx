@@ -54,7 +54,7 @@ export const DepartmentFilter = ({
               onClick={() => {
                 onSchoolSelect(school);
                 // When school changes, reset department selection
-                onDepartmentSelect("");
+                onDepartmentSelect("all");
               }}
               onKeyDown={(e) => handleKeyDown(e, school)}
               size="lg" 
@@ -82,7 +82,7 @@ export const DepartmentFilter = ({
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}

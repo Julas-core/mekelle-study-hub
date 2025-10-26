@@ -16,7 +16,7 @@ interface MaterialsGridProps {
   selectedDepartment?: string;
 }
 
-export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment = "" }: MaterialsGridProps) => {
+export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment = "all" }: MaterialsGridProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +70,7 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment 
     // If "All Schools" is selected, show all materials
     if (selectedSchool === "All Schools") {
       // If a specific department is selected, filter by that department
-      if (selectedDepartment) {
+      if (selectedDepartment && selectedDepartment !== "all") {
         return matchesSearch && material.department === selectedDepartment;
       }
       return matchesSearch;
@@ -87,7 +87,7 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment 
     const matchesSchool = departmentsInSchool.includes(material.department);
 
     // If both school and department are selected, apply both filters
-    if (selectedDepartment) {
+    if (selectedDepartment && selectedDepartment !== "all") {
       const matchesDepartment = material.department === selectedDepartment;
       return matchesSearch && matchesSchool && matchesDepartment;
     }
