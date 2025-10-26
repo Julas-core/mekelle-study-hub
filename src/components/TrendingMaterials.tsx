@@ -19,7 +19,7 @@ export const TrendingMaterials = () => {
         .select('*')
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('download_count', { ascending: false })
-        .limit(6);
+        .limit(2);
 
       if (data) {
         setMaterials(data);
@@ -38,8 +38,8 @@ export const TrendingMaterials = () => {
           <CardDescription>Most downloaded materials</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2].map((i) => (
               <Skeleton key={i} className="h-48" />
             ))}
           </div>
@@ -59,7 +59,7 @@ export const TrendingMaterials = () => {
         <CardDescription>Most downloaded materials in the last 7 days</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {materials.map((material) => (
             <MaterialCard key={material.id} material={material} />
           ))}
