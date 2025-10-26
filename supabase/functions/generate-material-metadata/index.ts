@@ -1,3 +1,4 @@
+// @ts-ignore: Deno serve is valid in Supabase Edge Functions
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -5,13 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+serve(async (req: any) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { fileName, department } = await req.json();
+    // @ts-ignore: Deno.env is valid in Supabase Edge Functions
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
@@ -19,13 +21,13 @@ serve(async (req) => {
     }
 
     const prompt = `Given a file named "${fileName}" for a ${department} department, analyze the filename and generate:
-1. The course code (e.g., CSEN301, MATH201) - extract from filename or suggest based on content
+1. The course code (e.g., CSEN301, MATH201): If the course code is present in the module data, use that. Otherwise, generate a placeholder course code (e.g., "EDITME001") so the admin can edit it later in the dashboard.
 2. A clear, concise title (max 100 characters)
 3. A brief description (max 200 characters) of what this material likely contains
 
 Respond in JSON format:
 {
-  "courseCode": "extracted or suggested course code",
+  "courseCode": "course code from module or placeholder if not found",
   "title": "your generated title",
   "description": "your generated description"
 }`;
