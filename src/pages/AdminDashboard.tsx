@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import { Upload, User, FileText, Eye, X, AlertCircle, MoreHorizontal, Check, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -52,6 +54,14 @@ const AdminDashboard = () => {
   const [editForm, setEditForm] = useState({ title: "", course: "", department: "", description: "" });
   const [newFile, setNewFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  // system configuration state
+  const [configLoading, setConfigLoading] = useState(false);
+  const [systemConfig, setSystemConfig] = useState({
+    autoApprove: false,
+    emailNotifications: true,
+    backupSchedule: '0 2 * * *' // default: daily at 2am
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -161,6 +171,74 @@ const AdminDashboard = () => {
       ...prev,
       totalDepartments: uniqueDepartments.length
     }));
+  };
+
+  const loadSystemConfig = async () => {
+    setConfigLoading(true);
+    try {
+      // Try to load from Supabase first
+      // supabase types don't include system_settings in the generated schema here,
+      // so use `any` to avoid TypeScript errors and cast returned rows explicitly.
+      const resp: any = await (supabase as any)
+        .from('system_settings')
+        .select('*')
+        .eq('id', 'global')
+        .maybeSingle();
+
+      const { data, error } = resp || {};
+
+      if (error) {
+        console.warn('Could not load system_settings from Supabase, falling back to localStorage', error);
+        const local = localStorage.getItem('mu_system_settings');
+        if (local) setSystemConfig(JSON.parse(local));
+      } else if (data) {
+        const row: any = data;
+        setSystemConfig({
+          autoApprove: !!row.auto_approve,
+          emailNotifications: !!row.email_notifications,
+          backupSchedule: row.backup_schedule || '0 2 * * *'
+        });
+      } else {
+        const local = localStorage.getItem('mu_system_settings');
+        if (local) setSystemConfig(JSON.parse(local));
+      }
+    } catch (e) {
+      console.error('Error loading system settings', e);
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
+  const saveSystemConfig = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        id: 'global',
+        auto_approve: systemConfig.autoApprove,
+        email_notifications: systemConfig.emailNotifications,
+        backup_schedule: systemConfig.backupSchedule,
+      } as any;
+
+      // Use `any` since system_settings is not in the generated DB types here.
+      const resp: any = await (supabase as any)
+        .from('system_settings')
+        .upsert(payload);
+
+      const { error } = resp || {};
+
+      if (error) {
+        console.warn('Failed to save to Supabase, falling back to localStorage', error);
+        localStorage.setItem('mu_system_settings', JSON.stringify(systemConfig));
+        toast({ title: 'Saved locally', description: 'Settings saved to browser storage because server save failed.' });
+      } else {
+        toast({ title: 'Saved', description: 'System settings updated.' });
+      }
+    } catch (e) {
+      console.error('Error saving system settings', e);
+      toast({ variant: 'destructive', title: 'Save failed', description: 'Unable to save system settings.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const openEdit = (material: Material) => {
@@ -572,20 +650,34 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Administrative settings and system configuration options will appear here.
+                  Administrative settings and system configuration options.
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span>Auto-approve uploads</span>
-                    <Button variant="outline" size="sm">Configure</Button>
+                    <div>
+                      <div className="font-medium">Auto-approve uploads</div>
+                      <div className="text-sm text-muted-foreground">Automatically approve uploaded materials without manual review.</div>
+                    </div>
+                    <Switch checked={systemConfig.autoApprove} onCheckedChange={(v) => setSystemConfig({ ...systemConfig, autoApprove: !!v })} />
                   </div>
+
                   <div className="flex items-center justify-between">
-                    <span>Email notifications</span>
-                    <Button variant="outline" size="sm">Configure</Button>
+                    <div>
+                      <div className="font-medium">Email notifications</div>
+                      <div className="text-sm text-muted-foreground">Send email notifications to admins on important events.</div>
+                    </div>
+                    <Switch checked={systemConfig.emailNotifications} onCheckedChange={(v) => setSystemConfig({ ...systemConfig, emailNotifications: !!v })} />
                   </div>
+
                   <div className="flex items-center justify-between">
-                    <span>Backup settings</span>
-                    <Button variant="outline" size="sm">Configure</Button>
+                    <div className="w-3/4">
+                      <div className="font-medium">Backup schedule (cron)</div>
+                      <div className="text-sm text-muted-foreground">Cron expression for automated backups. Example: <code>0 2 * * *</code> (daily at 2:00 AM)</div>
+                      <Input className="mt-2" value={systemConfig.backupSchedule} onChange={(e) => setSystemConfig({ ...systemConfig, backupSchedule: e.target.value })} />
+                    </div>
+                    <div className="w-1/4 flex justify-end">
+                      <Button onClick={saveSystemConfig} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -32,16 +32,17 @@ export const Hero = ({ onSearch }: HeroProps) => {
       
       <div className="relative z-10 container px-4 text-center">
         <div className="mb-6" role="banner">
-          <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-4">
-            Mekelle University
-          </h1>
-          <p className="text-xl md:text-2xl text-primary-foreground/90 mb-2">
-            Course Materials Hub
-          </p>
-          <p className="text-lg text-primary-foreground/80">
-            Access and share educational resources
-          </p>
+            <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-4">
+                MUStudy-HUB
+            </h1>
+            <p className="text-2xl md:text-3xl font-semibold text-primary-foreground/90 mb-2">
+                By Students, for Students
+            </p>
+            <p className="text-lg text-primary-foreground/80">
+                Make Studying Easier For Everyone.
+            </p>
         </div>
+
 
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto" role="search">
           <div className="flex gap-2 bg-card p-3 rounded-xl shadow-lg">

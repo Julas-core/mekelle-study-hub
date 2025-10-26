@@ -11,6 +11,8 @@ import { Footer } from "./components/Footer";
 import Header from "./components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
+import { useAuth } from '@/hooks/useAuth';
+import FirstTimeUploadModal from './components/FirstTimeUploadModal';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
@@ -36,6 +38,28 @@ declare global {
 
 function App() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showFirstUploadModal, setShowFirstUploadModal] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Show first-time upload modal once per user after sign-in
+    const key = user ? `mu_first_upload_shown:${user.id}` : null;
+    if (user && key && !localStorage.getItem(key)) {
+      setShowFirstUploadModal(true);
+    }
+    // If user signed out, hide modal
+    if (!user) setShowFirstUploadModal(false);
+  }, [user]);
+
+  const handleCloseFirstUpload = () => {
+    if (user) localStorage.setItem(`mu_first_upload_shown:${user.id}`, '1');
+    setShowFirstUploadModal(false);
+  };
+
+  const handleUploadFromModal = () => {
+    if (user) localStorage.setItem(`mu_first_upload_shown:${user.id}`, '1');
+    setShowFirstUploadModal(false);
+  };
 
   useEffect(() => {
     const fetchUserAvatar = async () => {
@@ -109,6 +133,11 @@ function App() {
                   <Footer />
                   <CookieConsent />
                   <MuslimNameDetectionWrapper />
+                  <FirstTimeUploadModal
+                    open={showFirstUploadModal}
+                    onClose={handleCloseFirstUpload}
+                    onUpload={handleUploadFromModal}
+                  />
                 </div>
               </AnalyticsWrapper>
             </ErrorBoundary>

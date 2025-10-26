@@ -36,10 +36,11 @@ const Header = ({ avatarUrl }: HeaderProps) => {
     <header className="border-b" role="banner">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo and University Name */}
+        <Link to="/" aria-label="MUStudy-HUB Home">
         <div className="flex items-center gap-3">
           <img src={StudyHubLogo} alt="Mekelle University Logo" className="h-10 object-contain" aria-label="Mekelle University Logo" />
         </div>
-
+        </Link>
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
           <Link to="/" className="transition-colors hover:text-primary">
