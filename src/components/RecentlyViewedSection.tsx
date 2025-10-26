@@ -18,7 +18,7 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
     }
 
     const fetchRecentlyViewed = async () => {
-      // Get last 6 unique recently viewed materials
+      // Get last 2 unique recently viewed materials
       const { data: recentViews } = await supabase
         .from('recently_viewed')
         .select('material_id, viewed_at')
@@ -28,7 +28,7 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
 
       if (recentViews && recentViews.length > 0) {
         // Get unique material IDs (most recent first)
-        const uniqueMaterialIds = [...new Set(recentViews.map(v => v.material_id))].slice(0, 6);
+        const uniqueMaterialIds = [...new Set(recentViews.map(v => v.material_id))].slice(0, 2);
 
         // Fetch material details
         const { data: materialsData } = await supabase
@@ -66,7 +66,7 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Recently Viewed</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {materials.map((material) => (
           <MaterialCard key={material.id} material={material} />
         ))}
