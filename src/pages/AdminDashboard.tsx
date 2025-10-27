@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, User, FileText, Eye, X, AlertCircle, MoreHorizontal, Check, Pencil, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isFreshmanCourse } from "@/utils/courseClassification";
 
 interface Material {
   id: string;
@@ -312,6 +313,36 @@ const AdminDashboard = () => {
     await fetchData(); // Refresh data
   };
 
+  const markAsFreshmanCourse = (id: string) => {
+    const overrides = JSON.parse(localStorage.getItem('freshmanCourseOverrides') || '{}');
+    overrides[id] = true;
+    localStorage.setItem('freshmanCourseOverrides', JSON.stringify(overrides));
+    fetchData(); // Refresh data to update UI
+  };
+
+  const removeFromFreshmanCourses = (id: string) => {
+    const overrides = JSON.parse(localStorage.getItem('freshmanCourseOverrides') || '{}');
+    overrides[id] = false;
+    localStorage.setItem('freshmanCourseOverrides', JSON.stringify(overrides));
+    fetchData(); // Refresh data to update UI
+  };
+
+  const toggleFreshmanCourse = (id: string) => {
+    const overrides = JSON.parse(localStorage.getItem('freshmanCourseOverrides') || '{}');
+    overrides[id] = !overrides[id]; // Toggle the value
+    localStorage.setItem('freshmanCourseOverrides', JSON.stringify(overrides));
+    fetchData(); // Refresh data to update UI
+  };
+
+  const isMaterialFreshmanCourse = (material: Material): boolean => {
+    return isFreshmanCourse(
+      material.course || '', 
+      material.title || '', 
+      material.department || '',
+      material.id
+    );
+  };
+
   const handleGrantAdmin = async (userId: string, userEmail: string | null) => {
     if (!window.confirm(`Are you sure you want to grant admin access to this user?`)) {
       return;
@@ -533,6 +564,7 @@ const AdminDashboard = () => {
                         <th className="text-left py-2">Department</th>
                         <th className="text-left py-2 text-sm text-muted-foreground">Uploader</th>
                         <th className="text-left py-2 text-sm text-muted-foreground hidden md:table-cell">Status</th>
+                        <th className="text-left py-2 text-sm text-muted-foreground">Freshman</th>
                         <th className="text-left py-2 text-sm text-muted-foreground">Actions</th>
                       </tr>
                     </thead>
@@ -547,6 +579,13 @@ const AdminDashboard = () => {
                             <Badge variant="outline" className="bg-muted text-muted-foreground">Active</Badge>
                           </td>
                           <td className="py-3">
+                            {isMaterialFreshmanCourse(material) ? (
+                              <Badge variant="default" className="bg-green-500">Yes</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">No</Badge>
+                            )}
+                          </td>
+                          <td className="py-3">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button size="icon" variant="ghost" aria-label="Actions">
@@ -559,6 +598,17 @@ const AdminDashboard = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => openEdit(material)}>
                                   <Pencil className="h-4 w-4 mr-2" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toggleFreshmanCourse(material.id)}>
+                                  {isMaterialFreshmanCourse(material) ? (
+                                    <>
+                                      <X className="h-4 w-4 mr-2" /> Remove from Freshman
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className="h-4 w-4 mr-2" /> Mark as Freshman
+                                    </>
+                                  )}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleApproveMaterial(material.id)}>
                                   <Check className="h-4 w-4 mr-2" /> Approve
@@ -717,6 +767,16 @@ const AdminDashboard = () => {
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="freshman-course"
+                    checked={isMaterialFreshmanCourse(editing!)}
+                    onCheckedChange={() => editing && toggleFreshmanCourse(editing.id)}
+                  />
+                  <Label htmlFor="freshman-course">Mark as Freshman Course</Label>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="file">Replace File (optional)</Label>

@@ -57,7 +57,15 @@ const FRESHMAN_DEPARTMENTS = [
 ];
 
 // Function to determine if a course is likely a freshman course
-export const isFreshmanCourse = (courseCode: string, title: string, department: string): boolean => {
+export const isFreshmanCourse = (courseCode: string, title: string, department: string, materialId?: string): boolean => {
+  // If a materialId is provided, check for admin overrides first
+  if (materialId) {
+    const overrides = JSON.parse(localStorage.getItem('freshmanCourseOverrides') || '{}');
+    if (overrides.hasOwnProperty(materialId)) {
+      return overrides[materialId]; // Return the override value (true/false)
+    }
+  }
+
   // Check course code patterns
   if (FRESHMAN_COURSE_CODES.some(code => 
     courseCode.toUpperCase().includes(code.toUpperCase())
@@ -93,7 +101,8 @@ export const getFreshmanMaterials = (materials: Array<any>): Array<any> => {
     isFreshmanCourse(
       material.course || '', 
       material.title || '', 
-      material.department || ''
+      material.department || '',
+      material.id
     )
   );
 };

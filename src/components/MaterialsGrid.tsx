@@ -8,7 +8,7 @@ import { Lock, GraduationCap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { MEKELLE_UNIVERSITY_SCHOOLS } from "@/constants/colleges";
-import { getFreshmanMaterials } from "@/utils/courseClassification";
+import { getFreshmanMaterials, isFreshmanCourse } from "@/utils/courseClassification";
 
 interface MaterialsGridProps {
   searchQuery: string;
@@ -78,7 +78,12 @@ export const MaterialsGrid = ({ searchQuery, selectedSchool, selectedDepartment 
     
     // If "Freshman Courses" is selected, show only freshman materials
     if (selectedSchool === "Freshman Courses") {
-      const isFreshman = getFreshmanMaterials([material]).length > 0;
+      const isFreshman = isFreshmanCourse(
+        material.course || '', 
+        material.title || '', 
+        material.department || '',
+        material.id
+      );
       return matchesSearch && isFreshman;
     }
 
