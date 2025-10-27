@@ -64,7 +64,7 @@ const Header = ({ avatarUrl }: HeaderProps) => {
             Contact
           </Link>
           <Link to="/help" className="transition-colors hover:text-primary">
-            Help
+            FAQ's
           </Link>
         </nav>
 
