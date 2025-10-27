@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MaterialCard, Material } from './MaterialCard';
-import { Loader2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 interface RecentlyViewedSectionProps {
   userId: string | undefined;
@@ -10,6 +11,7 @@ interface RecentlyViewedSectionProps {
 export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -18,7 +20,7 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
     }
 
     const fetchRecentlyViewed = async () => {
-      // Get last 2 unique recently viewed materials
+      // Get last 5 unique recently viewed materials
       const { data: recentViews } = await supabase
         .from('recently_viewed')
         .select('material_id, viewed_at')
@@ -28,7 +30,7 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
 
       if (recentViews && recentViews.length > 0) {
         // Get unique material IDs (most recent first)
-        const uniqueMaterialIds = [...new Set(recentViews.map(v => v.material_id))].slice(0, 2);
+        const uniqueMaterialIds = [...new Set(recentViews.map(v => v.material_id))].slice(0, 5);
 
         // Fetch material details
         const { data: materialsData } = await supabase
@@ -51,12 +53,51 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
     fetchRecentlyViewed();
   }, [userId]);
 
+  const scrollLeft = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   if (!userId) return null;
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Recently Viewed</h2>
+        <div className="relative">
+          <div className="flex overflow-x-auto space-x-4 pb-4 hide-scrollbar" ref={containerRef}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex-shrink-0 w-72">
+                <div className="bg-muted rounded-lg h-48 w-full animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-1/2 -right-3 transform -translate-y-1/2 rounded-full h-8 w-8"
+            onClick={scrollRight}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-1/2 -left-3 transform -translate-y-1/2 rounded-full h-8 w-8"
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -66,10 +107,36 @@ export const RecentlyViewedSection = ({ userId }: RecentlyViewedSectionProps) =>
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Recently Viewed</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {materials.map((material) => (
-          <MaterialCard key={material.id} material={material} />
-        ))}
+      <div className="relative">
+        <div className="flex overflow-x-auto space-x-4 pb-4 hide-scrollbar" ref={containerRef}>
+          {materials.map((material) => (
+            <div key={material.id} className="flex-shrink-0 w-72">
+              <MaterialCard material={material} />
+            </div>
+          ))}
+        </div>
+        {materials.length > 2 && ( // Only show controls if there are multiple items
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-1/2 -right-3 transform -translate-y-1/2 rounded-full h-8 w-8"
+              onClick={scrollRight}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-1/2 -left-3 transform -translate-y-1/2 rounded-full h-8 w-8"
+              onClick={scrollLeft}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
