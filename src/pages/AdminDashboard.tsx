@@ -599,7 +599,7 @@ const AdminDashboard = () => {
                                 <DropdownMenuItem onClick={() => openEdit(material)}>
                                   <Pencil className="h-4 w-4 mr-2" /> Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => toggleFreshmanCourse(material.id)}>
+                                <DropdownMenuItem onClick={() => isMaterialFreshmanCourse(material) ? removeFromFreshmanCourses(material.id) : markAsFreshmanCourse(material.id)}>
                                   {isMaterialFreshmanCourse(material) ? (
                                     <>
                                       <X className="h-4 w-4 mr-2" /> Remove from Freshman
@@ -772,8 +772,8 @@ const AdminDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="freshman-course"
-                    checked={isMaterialFreshmanCourse(editing!)}
-                    onCheckedChange={() => editing && toggleFreshmanCourse(editing.id)}
+                    checked={editing ? isMaterialFreshmanCourse(editing) : false}
+                    onCheckedChange={(checked) => editing && (checked ? markAsFreshmanCourse(editing.id) : removeFromFreshmanCourses(editing.id))}
                   />
                   <Label htmlFor="freshman-course">Mark as Freshman Course</Label>
                 </div>

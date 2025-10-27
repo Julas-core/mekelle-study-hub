@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UserPointsBadge } from "./UserPointsBadge";
 // Use Vite-compatible URL import for static asset (SVG) to avoid runtime import issues
-const StudyHubLogo = new URL('../assets/MuStudyHubv2..svg', import.meta.url).href;
+const StudyHubLogo = new URL('../assets/MuStudyHubv3..svg', import.meta.url).href;
 
 export type HeaderProps = {
   avatarUrl?: string | null;
