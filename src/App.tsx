@@ -37,7 +37,8 @@ declare global {
   }
 }
 
-function App() {
+// AppContent component that uses Clerk hooks (must be inside ClerkProvider)
+function AppContent() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showFirstUploadModal, setShowFirstUploadModal] = useState(false);
   const { user } = useAuth();
@@ -96,53 +97,58 @@ function App() {
       window.removeEventListener('profile-updated', onProfileUpdated as EventListener);
     };
   }, [user]);
+
   return (
-    <>
-      <ClerkProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-            <ErrorBoundary>
-              <AnalyticsWrapper>
-                <div className="flex flex-col min-h-screen">
-                  <Header avatarUrl={avatarUrl} />
-                  <main className="flex-grow">
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<ClerkAuth />} />
-                      <Route path="/register" element={<ClerkAuth />} />
-                      <Route path="/upload" element={<Upload />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/help" element={<Help />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/terms" element={<Terms />} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/study-groups" element={<StudyGroups />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                  <Footer />
-                  <CookieConsent />
-                  <MuslimNameDetectionWrapper />
-                  <FirstTimeUploadModal
-                    open={showFirstUploadModal}
-                    onClose={handleCloseFirstUpload}
-                    onUpload={handleUploadFromModal}
-                  />
-                </div>
-              </AnalyticsWrapper>
-            </ErrorBoundary>
-          </BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AnalyticsWrapper>
+          <div className="flex flex-col min-h-screen">
+            <Header avatarUrl={avatarUrl} />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<ClerkAuth />} />
+                <Route path="/register" element={<ClerkAuth />} />
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/study-groups" element={<StudyGroups />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+            <CookieConsent />
+            <MuslimNameDetectionWrapper />
+            <FirstTimeUploadModal
+              open={showFirstUploadModal}
+              onClose={handleCloseFirstUpload}
+              onUpload={handleUploadFromModal}
+            />
+          </div>
+        </AnalyticsWrapper>
+      </ErrorBoundary>
+    </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <ClerkProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
         </TooltipProvider>
       </QueryClientProvider>
-      </ClerkProvider>
-    </>
+    </ClerkProvider>
   );
 }
 
