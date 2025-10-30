@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
 import { useAuth } from '@/hooks/useAuth';
 import FirstTimeUploadModal from './components/FirstTimeUploadModal';
+import ProfileCompletionModal from './components/ProfileCompletionModal';
 import { ClerkProvider } from './providers/ClerkProvider';
 import Index from "./pages/Index";
 import ClerkAuth from "./pages/ClerkAuth";
@@ -40,17 +41,41 @@ declare global {
 // AppContent component that uses Clerk hooks (must be inside ClerkProvider)
 function AppContent() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [showFirstUploadModal, setShowFirstUploadModal] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
-    // Show first-time upload modal once per user after sign-in
-    const key = user ? `mu_first_upload_shown:${user.id}` : null;
-    if (user && key && !localStorage.getItem(key)) {
-      setShowFirstUploadModal(true);
-    }
-    // If user signed out, hide modal
-    if (!user) setShowFirstUploadModal(false);
+    const checkProfileCompletion = async () => {
+      if (!user) {
+        setShowProfileCompletion(false);
+        setShowFirstUploadModal(false);
+        return;
+      }
+
+      // Check if profile is complete
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('department, student_id')
+        .eq('id', user.id)
+        .single();
+
+      const isProfileComplete = profile?.department && profile?.student_id;
+      
+      if (!isProfileComplete) {
+        setShowProfileCompletion(true);
+        setShowFirstUploadModal(false);
+      } else {
+        setShowProfileCompletion(false);
+        // Show first-time upload modal once per user after profile is complete
+        const key = `mu_first_upload_shown:${user.id}`;
+        if (!localStorage.getItem(key)) {
+          setShowFirstUploadModal(true);
+        }
+      }
+    };
+
+    checkProfileCompletion();
   }, [user]);
 
   const handleCloseFirstUpload = () => {
@@ -126,11 +151,23 @@ function AppContent() {
             <Footer />
             <CookieConsent />
             <MuslimNameDetectionWrapper />
-            <FirstTimeUploadModal
-              open={showFirstUploadModal}
-              onClose={handleCloseFirstUpload}
-              onUpload={handleUploadFromModal}
-            />
+            {user && (
+              <>
+                <ProfileCompletionModal
+                  open={showProfileCompletion}
+                  userId={user.id}
+                  onComplete={() => {
+                    setShowProfileCompletion(false);
+                    setShowFirstUploadModal(true);
+                  }}
+                />
+                <FirstTimeUploadModal
+                  open={showFirstUploadModal}
+                  onClose={handleCloseFirstUpload}
+                  onUpload={handleUploadFromModal}
+                />
+              </>
+            )}
           </div>
         </AnalyticsWrapper>
       </ErrorBoundary>

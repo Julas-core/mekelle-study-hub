@@ -40,6 +40,17 @@ export const BulkUploadMaterial = ({ department, onMaterialsChange }: BulkUpload
     for (let i = 0; i < newMaterials.length; i++) {
       const material = newMaterials[i];
       try {
+        // Extract file content for better AI analysis
+        let fileContent = '';
+        
+        if (material.file.type.includes('text') || material.file.name.endsWith('.txt') || material.file.name.endsWith('.md')) {
+          try {
+            fileContent = await material.file.text();
+          } catch (e) {
+            console.log('Could not read file as text, using filename only');
+          }
+        }
+
         const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-material-metadata`, {
           method: 'POST',
           headers: {
@@ -49,6 +60,7 @@ export const BulkUploadMaterial = ({ department, onMaterialsChange }: BulkUpload
           body: JSON.stringify({
             fileName: material.file.name,
             department,
+            fileContent: fileContent || undefined,
           }),
         });
 

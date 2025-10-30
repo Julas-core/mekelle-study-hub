@@ -73,6 +73,20 @@ const Upload = () => {
 
   const generateMetadata = async (index: number, school: string, department: string, file: File) => {
     try {
+      // Extract file content for better AI analysis
+      let fileContent = '';
+      
+      // For text-based files, read content
+      if (file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        try {
+          fileContent = await file.text();
+        } catch (e) {
+          console.log('Could not read file as text, using filename only');
+        }
+      }
+      // For PDFs, we'll send just the filename (server-side PDF parsing would be too heavy)
+      // Gemini can analyze PDFs if we send them as base64, but for now keeping it simple
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-material-metadata`, {
         method: 'POST',
         headers: {
@@ -81,7 +95,8 @@ const Upload = () => {
         },
         body: JSON.stringify({
           fileName: file.name,
-          department: department, // Using department as school info is already separated
+          department: department,
+          fileContent: fileContent || undefined,
         }),
       });
 
