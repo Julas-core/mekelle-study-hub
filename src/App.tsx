@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,8 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
 import { useAuth } from '@/hooks/useAuth';
 import FirstTimeUploadModal from './components/FirstTimeUploadModal';
+import { ClerkProvider } from './providers/ClerkProvider';
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+import ClerkAuth from "./pages/ClerkAuth";
 import Upload from "./pages/Upload";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
@@ -24,8 +25,6 @@ import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/AdminDashboard";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
-import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
 import StudyGroups from "./pages/StudyGroups";
 
@@ -65,8 +64,7 @@ function App() {
 
   useEffect(() => {
     const fetchUserAvatar = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user?.id) {
         const { data } = await supabase
           .from('profiles')
           .select('avatar_url, updated_at')
@@ -86,10 +84,6 @@ function App() {
 
     fetchUserAvatar();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchUserAvatar();
-    });
-
     const onProfileUpdated = (e: any) => {
       const avatar = e?.detail?.avatarUrl ?? null;
       if (avatar) setAvatarUrl(avatar);
@@ -99,17 +93,17 @@ function App() {
     window.addEventListener('profile-updated', onProfileUpdated as EventListener);
 
     return () => {
-      subscription.unsubscribe();
       window.removeEventListener('profile-updated', onProfileUpdated as EventListener);
     };
-  }, []);
+  }, [user]);
   return (
     <>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <ClerkProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <ErrorBoundary>
               <AnalyticsWrapper>
                 <div className="flex flex-col min-h-screen">
@@ -117,9 +111,8 @@ function App() {
                   <main className="flex-grow">
                     <Routes>
                       <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/register" element={<RegisterPage />} />
-                      <Route path="/verify-email" element={<EmailVerificationPage />} />
+                      <Route path="/auth" element={<ClerkAuth />} />
+                      <Route path="/register" element={<ClerkAuth />} />
                       <Route path="/upload" element={<Upload />} />
                       <Route path="/about" element={<About />} />
                       <Route path="/contact" element={<Contact />} />
@@ -148,6 +141,7 @@ function App() {
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </ClerkProvider>
     </>
   );
 }
