@@ -43,10 +43,10 @@ const Header = ({ avatarUrl }: HeaderProps) => {
         </div>
         </Link>
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
-          <Link to="/" className="transition-colors hover:text-primary">
+        <nav className="hidden md:flex items-center gap-4 text-sm font-medium ml-4" aria-label="Main navigation">
+          {/* <Link to="/" className="transition-colors hover:text-primary">
             Home
-          </Link>
+          </Link> */}
           {user && (
             <>
               <Link to="/dashboard" className="transition-colors hover:text-primary">
