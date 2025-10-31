@@ -1,9 +1,20 @@
-import React from "react"; // Import React library (JSX transform may rely on this import)
-import { createRoot } from "react-dom/client"; // Import createRoot function from react-dom for React 18+ rendering
-import App from "./App"; // Import the root App component from the local App module
-import "./index.css"; // Import global CSS so bundler includes it in the build
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ClerkProvider } from '@clerk/clerk-react';
+import App from "./App";
+import "./index.css";
 
-const rootEl = document.getElementById("root"); // Find the DOM element with id "root" where the app will mount
-if (!rootEl) throw new Error("Root element not found"); // If that element is missing, throw an error to fail fast
-const root = createRoot(rootEl); // Create a React root using the found DOM element (enables concurrent features)
-root.render(<App />); // Render the <App /> component tree into the created React root
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
+
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element not found");
+const root = createRoot(rootEl);
+root.render(
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <App />
+  </ClerkProvider>
+);

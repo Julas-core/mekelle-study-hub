@@ -11,6 +11,7 @@ import { Footer } from "./components/Footer";
 import Header from "./components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
+import { ClerkUserSync } from "./components/ClerkUserSync";
 import { useAuth } from '@/hooks/useAuth';
 import FirstTimeUploadModal from './components/FirstTimeUploadModal';
 import Index from "./pages/Index";
@@ -64,9 +65,9 @@ function App() {
   };
 
   useEffect(() => {
+    // Fetch avatar from Clerk user via profiles table
     const fetchUserAvatar = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user?.id) {
         const { data } = await supabase
           .from('profiles')
           .select('avatar_url, updated_at')
@@ -86,10 +87,6 @@ function App() {
 
     fetchUserAvatar();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchUserAvatar();
-    });
-
     const onProfileUpdated = (e: any) => {
       const avatar = e?.detail?.avatarUrl ?? null;
       if (avatar) setAvatarUrl(avatar);
@@ -99,14 +96,15 @@ function App() {
     window.addEventListener('profile-updated', onProfileUpdated as EventListener);
 
     return () => {
-      subscription.unsubscribe();
       window.removeEventListener('profile-updated', onProfileUpdated as EventListener);
     };
-  }, []);
+  }, [user]);
+
   return (
     <>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <ClerkUserSync />
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -130,7 +128,6 @@ function App() {
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/study-groups" element={<StudyGroups />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
