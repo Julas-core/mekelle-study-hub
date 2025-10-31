@@ -17,19 +17,19 @@ const Header = ({ avatarUrl }: HeaderProps) => {
   const { toast } = useToast();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Success",
-        description: "You have been signed out.",
-      });
-      navigate("/");
-    } catch (error) {
+    const { error } = await signOut();
+    if (error) {
       toast({
         title: "Error",
         description: "Failed to sign out. Please try again.",
         variant: "destructive",
       });
+    } else {
+      toast({
+        title: "Success",
+        description: "You have been signed out.",
+      });
+      navigate("/");
     }
   };
 

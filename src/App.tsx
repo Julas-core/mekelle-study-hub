@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,10 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import MuslimNameDetectionWrapper from "./components/MuslimNameDetectionWrapper";
 import { useAuth } from '@/hooks/useAuth';
 import FirstTimeUploadModal from './components/FirstTimeUploadModal';
-import ProfileCompletionModal from './components/ProfileCompletionModal';
-import { ClerkProvider } from './providers/ClerkProvider';
 import Index from "./pages/Index";
-import ClerkAuth from "./pages/ClerkAuth";
+import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
@@ -26,6 +24,8 @@ import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/AdminDashboard";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
 import StudyGroups from "./pages/StudyGroups";
 
@@ -38,44 +38,19 @@ declare global {
   }
 }
 
-// AppContent component that uses Clerk hooks (must be inside ClerkProvider)
-function AppContent() {
+function App() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [showFirstUploadModal, setShowFirstUploadModal] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
-    const checkProfileCompletion = async () => {
-      if (!user) {
-        setShowProfileCompletion(false);
-        setShowFirstUploadModal(false);
-        return;
-      }
-
-      // Check if profile is complete
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('department, student_id')
-        .eq('id', user.id)
-        .single();
-
-      const isProfileComplete = profile?.department && profile?.student_id;
-      
-      if (!isProfileComplete) {
-        setShowProfileCompletion(true);
-        setShowFirstUploadModal(false);
-      } else {
-        setShowProfileCompletion(false);
-        // Show first-time upload modal once per user after profile is complete
-        const key = `mu_first_upload_shown:${user.id}`;
-        if (!localStorage.getItem(key)) {
-          setShowFirstUploadModal(true);
-        }
-      }
-    };
-
-    checkProfileCompletion();
+    // Show first-time upload modal once per user after sign-in
+    const key = user ? `mu_first_upload_shown:${user.id}` : null;
+    if (user && key && !localStorage.getItem(key)) {
+      setShowFirstUploadModal(true);
+    }
+    // If user signed out, hide modal
+    if (!user) setShowFirstUploadModal(false);
   }, [user]);
 
   const handleCloseFirstUpload = () => {
@@ -90,7 +65,8 @@ function AppContent() {
 
   useEffect(() => {
     const fetchUserAvatar = async () => {
-      if (user?.id) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const { data } = await supabase
           .from('profiles')
           .select('avatar_url, updated_at')
@@ -110,6 +86,10 @@ function AppContent() {
 
     fetchUserAvatar();
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchUserAvatar();
+    });
+
     const onProfileUpdated = (e: any) => {
       const avatar = e?.detail?.avatarUrl ?? null;
       if (avatar) setAvatarUrl(avatar);
@@ -119,73 +99,56 @@ function AppContent() {
     window.addEventListener('profile-updated', onProfileUpdated as EventListener);
 
     return () => {
+      subscription.unsubscribe();
       window.removeEventListener('profile-updated', onProfileUpdated as EventListener);
     };
-  }, [user]);
-
+  }, []);
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <AnalyticsWrapper>
-          <div className="flex flex-col min-h-screen">
-            <Header avatarUrl={avatarUrl} />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<ClerkAuth />} />
-                <Route path="/register" element={<ClerkAuth />} />
-                <Route path="/upload" element={<Upload />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/help" element={<Help />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/study-groups" element={<StudyGroups />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
-            <CookieConsent />
-            <MuslimNameDetectionWrapper />
-            {user && (
-              <>
-                <ProfileCompletionModal
-                  open={showProfileCompletion}
-                  userId={user.id}
-                  onComplete={() => {
-                    setShowProfileCompletion(false);
-                    setShowFirstUploadModal(true);
-                  }}
-                />
-                <FirstTimeUploadModal
-                  open={showFirstUploadModal}
-                  onClose={handleCloseFirstUpload}
-                  onUpload={handleUploadFromModal}
-                />
-              </>
-            )}
-          </div>
-        </AnalyticsWrapper>
-      </ErrorBoundary>
-    </BrowserRouter>
-  );
-}
-
-function App() {
-  return (
-    <ClerkProvider>
+    <>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AppContent />
+          <BrowserRouter>
+            <ErrorBoundary>
+              <AnalyticsWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header avatarUrl={avatarUrl} />
+                  <main className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/register" element={<RegisterPage />} />
+                      <Route path="/verify-email" element={<EmailVerificationPage />} />
+                      <Route path="/upload" element={<Upload />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/help" element={<Help />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/study-groups" element={<StudyGroups />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                  <CookieConsent />
+                  <MuslimNameDetectionWrapper />
+                  <FirstTimeUploadModal
+                    open={showFirstUploadModal}
+                    onClose={handleCloseFirstUpload}
+                    onUpload={handleUploadFromModal}
+                  />
+                </div>
+              </AnalyticsWrapper>
+            </ErrorBoundary>
+          </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    </ClerkProvider>
+    </>
   );
 }
 

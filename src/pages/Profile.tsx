@@ -12,7 +12,7 @@ import { UserPointsBadge } from "@/components/UserPointsBadge";
 const Profile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [fullName, setFullName] = useState(user?.full_name || user?.email?.split('@')[0] || '');
+  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || user?.email?.split('@')[0] || '');
   const [email, setEmail] = useState(user?.email || '');
   const [department, setDepartment] = useState('');
   const [studentId, setStudentId] = useState('');
@@ -38,7 +38,7 @@ const Profile = () => {
           }
           
           if (data) {
-            setFullName(data.full_name || user.full_name || user.email?.split('@')[0] || '');
+            setFullName(data.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || '');
             setDepartment(data.department || '');
             setStudentId(data.student_id || '');
             setAvatarUrl(data.avatar_url);
@@ -311,8 +311,8 @@ const Profile = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Account Information</h3>
                 <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Account Created:</span> {new Date(user.created_at).toLocaleDateString()}</p>
                   <p><span className="font-medium">User ID:</span> {user.id}</p>
-                  <p><span className="font-medium">Email:</span> {user.email}</p>
                   <p><span className="font-medium">Status:</span> Active</p>
                 </div>
               </div>

@@ -43,10 +43,10 @@ const MuslimNameDetectionWrapper = () => {
           return;
         }
         
-        // Get user's full name from profile
-        let fullName = user.full_name;
+        // Get user's full name from user metadata or profile
+        let fullName = user.user_metadata?.full_name;
         
-        // If full name is not available, fetch from profiles table
+        // If full name is not in user metadata, fetch from profiles table
         if (!fullName) {
           const { data: profileData } = await supabase
             .from('profiles')

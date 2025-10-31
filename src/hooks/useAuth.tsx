@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useAuth = () => {
-  const { user: clerkUser, isLoaded } = useUser();
-  const { signOut: clerkSignOut } = useClerk();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const checkAdminStatus = async (userId: string) => {
@@ -19,22 +20,79 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    if (isLoaded && clerkUser) {
-      checkAdminStatus(clerkUser.id);
-    } else {
+    // Check for existing session FIRST
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id });
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user?.id) {
+        await checkAdminStatus(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, { hasSession: !!session, userId: session?.user?.id });
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check admin status using database
+        if (session?.user?.id) {
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signUp = async (email: string, password: string, fullName: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+    return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setSession(null);
       setIsAdmin(false);
     }
-  }, [isLoaded, clerkUser]);
+    return { error };
+  };
 
   return {
-    user: clerkUser ? {
-      id: clerkUser.id,
-      email: clerkUser.primaryEmailAddress?.emailAddress || '',
-      full_name: clerkUser.fullName || '',
-    } : null,
-    session: clerkUser ? { user: clerkUser } : null,
-    loading: !isLoaded,
+    user,
+    session,
+    loading,
     isAdmin,
-    signOut: clerkSignOut,
+    signUp,
+    signIn,
+    signOut,
   };
 };

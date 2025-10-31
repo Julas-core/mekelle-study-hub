@@ -12,7 +12,7 @@ serve(async (req: any) => {
   }
 
   try {
-    const { fileName, department, fileContent } = await req.json();
+    const { fileName, department } = await req.json();
     // @ts-ignore: Deno.env is valid in Supabase Edge Functions
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
@@ -20,53 +20,17 @@ serve(async (req: any) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build messages array with file content if available
-    const messages: any[] = [
-      { 
-        role: 'system', 
-        content: 'You are a helpful assistant that analyzes educational materials and generates metadata. Always respond with valid JSON only.' 
-      }
-    ];
-
-    let prompt = '';
-    
-    if (fileContent) {
-      // If we have file content, use it for better analysis
-      prompt = `Analyze this educational material file and generate accurate metadata based on its actual content.
-
-File name: "${fileName}"
-Department context: ${department}
-
-File content preview:
-${fileContent.substring(0, 3000)}
-
-Based on the ACTUAL CONTENT above, generate:
-1. The course code (e.g., CSEN301, MATH201): Extract from the content if present, otherwise use "EDITME001" as placeholder
-2. A clear, descriptive title (max 100 characters) that reflects the actual content
-3. A brief description (max 200 characters) summarizing what this material actually contains
-
-Respond in JSON format only:
-{
-  "courseCode": "extracted or placeholder course code",
-  "title": "content-based title",
-  "description": "summary of actual content"
-}`;
-    } else {
-      // Fallback to filename-based analysis
-      prompt = `Given a file named "${fileName}" for a ${department} department, analyze the filename and generate:
-1. The course code (e.g., CSEN301, MATH201): If present in filename, use that. Otherwise, generate placeholder "EDITME001"
+    const prompt = `Given a file named "${fileName}" for a ${department} department, analyze the filename and generate:
+1. The course code (e.g., CSEN301, MATH201): If the course code is present in the module data, use that. Otherwise, generate a placeholder course code (e.g., "EDITME001") so the admin can edit it later in the dashboard.
 2. A clear, concise title (max 100 characters)
 3. A brief description (max 200 characters) of what this material likely contains
 
 Respond in JSON format:
 {
-  "courseCode": "course code from filename or placeholder",
+  "courseCode": "course code from module or placeholder if not found",
   "title": "your generated title",
   "description": "your generated description"
 }`;
-    }
-
-    messages.push({ role: 'user', content: prompt });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -76,7 +40,10 @@ Respond in JSON format:
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages,
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that extracts course information and generates educational material metadata. Always respond with valid JSON only.' },
+          { role: 'user', content: prompt }
+        ],
       }),
     });
 
