@@ -28,6 +28,13 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
 import StudyGroups from "./pages/StudyGroups";
+import MaterialDetail from "./pages/MaterialDetail";
+import Leaderboard from "./pages/Leaderboard";
+import ExamPrep from "./pages/ExamPrep";
+import Forum from "./pages/Forum";
+import ForumQuestion from "./pages/ForumQuestion";
+import AIAssistant from "./pages/AIAssistant";
+import Notes from "./pages/Notes";
 
 const queryClient = new QueryClient();
 
@@ -130,7 +137,13 @@ function App() {
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/study-groups" element={<StudyGroups />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="/material/:id" element={<MaterialDetail />} />
+                      <Route path="/leaderboard" element={<Leaderboard />} />
+                      <Route path="/exam-prep" element={<ExamPrep />} />
+                      <Route path="/forum" element={<Forum />} />
+                      <Route path="/forum/:id" element={<ForumQuestion />} />
+                      <Route path="/ai-assistant" element={<AIAssistant />} />
+                      <Route path="/notes" element={<Notes />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>

@@ -4,6 +4,8 @@ import { LogOut, Upload, User, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UserPointsBadge } from "./UserPointsBadge";
+import { StudyStreak } from "./StudyStreak";
+import { NotificationBell } from "./NotificationBell";
 // Use Vite-compatible URL import for static asset (SVG) to avoid runtime import issues
 const StudyHubLogo = new URL('../assets/MuStudyHubv4..svg', import.meta.url).href;
 
@@ -55,6 +57,21 @@ const Header = ({ avatarUrl }: HeaderProps) => {
               <Link to="/study-groups" className="transition-colors hover:text-primary">
                 Study Groups
               </Link>
+              <Link to="/forum" className="transition-colors hover:text-primary">
+                Forum
+              </Link>
+              <Link to="/leaderboard" className="transition-colors hover:text-primary">
+                Leaderboard
+              </Link>
+              <Link to="/exam-prep" className="transition-colors hover:text-primary">
+                Exam Prep
+              </Link>
+              <Link to="/ai-assistant" className="transition-colors hover:text-primary">
+                AI Assistant
+              </Link>
+              <Link to="/notes" className="transition-colors hover:text-primary">
+                Notes
+              </Link>
             </>
           )}
           <Link to="/about" className="transition-colors hover:text-primary">
@@ -72,7 +89,9 @@ const Header = ({ avatarUrl }: HeaderProps) => {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              <StudyStreak />
               <UserPointsBadge userId={user.id} />
+              <NotificationBell />
               
               <Link to="/profile">
                 <button

@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_sessions_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badges: {
         Row: {
           created_at: string
@@ -118,52 +185,157 @@ export type Database = {
           },
         ]
       }
-      conversation_participants: {
+      exam_topics: {
         Row: {
-          conversation_id: string
+          course: string
+          created_at: string
+          department: string
           id: string
-          joined_at: string
+          status: string
+          topic_name: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          conversation_id: string
+          course: string
+          created_at?: string
+          department: string
           id?: string
-          joined_at?: string
+          status?: string
+          topic_name: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          conversation_id?: string
+          course?: string
+          created_at?: string
+          department?: string
           id?: string
-          joined_at?: string
+          status?: string
+          topic_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      forum_answers: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_accepted: boolean
+          question_id: string
+          updated_at: string
+          upvotes: number
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean
+          question_id: string
+          updated_at?: string
+          upvotes?: number
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean
+          question_id?: string
+          updated_at?: string
+          upvotes?: number
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "conversation_participants_conversation_id_fkey"
-            columns: ["conversation_id"]
+            foreignKeyName: "forum_answers_question_id_fkey"
+            columns: ["question_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "forum_questions"
             referencedColumns: ["id"]
           },
         ]
       }
-      conversations: {
+      forum_questions: {
         Row: {
+          content: string
+          course: string
           created_at: string
+          department: string
           id: string
+          title: string
           updated_at: string
+          upvotes: number
+          user_id: string
+          views: number
         }
         Insert: {
+          content: string
+          course: string
           created_at?: string
+          department: string
           id?: string
+          title: string
           updated_at?: string
+          upvotes?: number
+          user_id: string
+          views?: number
         }
         Update: {
+          content?: string
+          course?: string
           created_at?: string
+          department?: string
           id?: string
+          title?: string
           updated_at?: string
+          upvotes?: number
+          user_id?: string
+          views?: number
         }
         Relationships: []
+      }
+      forum_upvotes: {
+        Row: {
+          answer_id: string | null
+          created_at: string
+          id: string
+          question_id: string | null
+          user_id: string
+        }
+        Insert: {
+          answer_id?: string | null
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          user_id: string
+        }
+        Update: {
+          answer_id?: string | null
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_upvotes_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "forum_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_upvotes_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forum_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       material_requests: {
         Row: {
@@ -291,40 +463,35 @@ export type Database = {
         }
         Relationships: []
       }
-      messages: {
+      notifications: {
         Row: {
-          content: string
-          conversation_id: string
           created_at: string
           id: string
+          message: string
           read: boolean
-          sender_id: string
+          reference_id: string | null
+          type: string
+          user_id: string
         }
         Insert: {
-          content: string
-          conversation_id: string
           created_at?: string
           id?: string
+          message: string
           read?: boolean
-          sender_id: string
+          reference_id?: string | null
+          type: string
+          user_id: string
         }
         Update: {
-          content?: string
-          conversation_id?: string
           created_at?: string
           id?: string
+          message?: string
           read?: boolean
-          sender_id?: string
+          reference_id?: string | null
+          type?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       point_transactions: {
         Row: {
@@ -515,6 +682,47 @@ export type Database = {
         }
         Relationships: []
       }
+      study_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          material_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          material_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          material_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_notes_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           created_at: string
@@ -530,6 +738,30 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      user_activity_log: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -622,6 +854,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      get_user_streak: { Args: { p_user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
