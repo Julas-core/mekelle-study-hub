@@ -244,10 +244,13 @@ export type Database = {
           department: string
           description: string | null
           download_count: number
+          exam_semester: string | null
+          exam_year: string | null
           file_path: string
           file_size: string
           file_type: string
           id: string
+          material_type: string
           title: string
           uploaded_by: string
           uploaded_by_user_id: string
@@ -258,10 +261,13 @@ export type Database = {
           department: string
           description?: string | null
           download_count?: number
+          exam_semester?: string | null
+          exam_year?: string | null
           file_path: string
           file_size: string
           file_type: string
           id?: string
+          material_type?: string
           title: string
           uploaded_by: string
           uploaded_by_user_id: string
@@ -272,10 +278,13 @@ export type Database = {
           department?: string
           description?: string | null
           download_count?: number
+          exam_semester?: string | null
+          exam_year?: string | null
           file_path?: string
           file_size?: string
           file_type?: string
           id?: string
+          material_type?: string
           title?: string
           uploaded_by?: string
           uploaded_by_user_id?: string

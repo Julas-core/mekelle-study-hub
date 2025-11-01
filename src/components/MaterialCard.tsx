@@ -26,6 +26,9 @@ export interface Material {
   uploaded_by_user_id?: string | null;
   created_at: string;
   download_count?: number;
+  material_type?: string;
+  exam_year?: string | null;
+  exam_semester?: string | null;
 }
 
 interface MaterialCardProps {

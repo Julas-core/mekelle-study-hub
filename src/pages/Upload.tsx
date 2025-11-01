@@ -20,6 +20,9 @@ interface MaterialMetadata {
   school: string;
   department: string;
   generating: boolean;
+  materialType: string;
+  examYear?: string;
+  examSemester?: string;
 }
 
 const Upload = () => {
@@ -50,13 +53,16 @@ const Upload = () => {
       description: '',
       school: '',
       department: '',
-      generating: false, // Don't start generating until school and department are selected
+      generating: false,
+      materialType: 'material',
+      examYear: '',
+      examSemester: '',
     }));
 
     setMaterials(prev => [...prev, ...newMaterials]);
   };
 
-  const updateMaterial = (index: number, field: 'school' | 'department', value: string) => {
+  const updateMaterial = (index: number, field: keyof MaterialMetadata, value: string) => {
     setMaterials(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -205,13 +211,16 @@ const Upload = () => {
           .insert({
             title: material.title,
             description: material.description,
-            department: material.department, // Store the selected department
+            department: material.department,
             course: material.courseCode,
             file_type: getFileType(material.file.name),
             file_path: filePath,
             file_size: formatFileSize(material.file.size),
             uploaded_by: uploadedBy,
             uploaded_by_user_id: user.id,
+            material_type: material.materialType,
+            exam_year: material.materialType === 'exam' ? material.examYear : null,
+            exam_semester: material.materialType === 'exam' ? material.examSemester : null,
           });
 
         if (insertError) throw insertError;
@@ -352,6 +361,23 @@ const Upload = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
+                            <Label htmlFor={`type-${index}`}>Type *</Label>
+                            <Select 
+                              value={material.materialType} 
+                              onValueChange={(value) => updateMaterial(index, 'materialType', value)} 
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="material">Study Material</SelectItem>
+                                <SelectItem value="exam">Past Exam</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
                             <Label htmlFor={`school-${index}`}>School *</Label>
                             <Select 
                               value={material.school} 
@@ -368,7 +394,9 @@ const Upload = () => {
                               </SelectContent>
                             </Select>
                           </div>
+                        </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor={`department-${index}`}>Department *</Label>
                             <Select 
@@ -391,7 +419,40 @@ const Upload = () => {
                               </SelectContent>
                             </Select>
                           </div>
+
+                          {material.materialType === 'exam' && (
+                            <>
+                              <div className="space-y-2">
+                                <Label htmlFor={`year-${index}`}>Exam Year</Label>
+                                <Input
+                                  id={`year-${index}`}
+                                  value={material.examYear || ''}
+                                  onChange={(e) => updateMaterial(index, 'examYear', e.target.value)}
+                                  placeholder="e.g., 2024"
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
+
+                        {material.materialType === 'exam' && (
+                          <div className="space-y-2">
+                            <Label htmlFor={`semester-${index}`}>Semester</Label>
+                            <Select 
+                              value={material.examSemester || ''} 
+                              onValueChange={(value) => updateMaterial(index, 'examSemester', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select semester" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Fall">Fall</SelectItem>
+                                <SelectItem value="Spring">Spring</SelectItem>
+                                <SelectItem value="Summer">Summer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
 
                         {material.generating && (
                           <div className="flex items-center gap-2 text-sm text-primary">
